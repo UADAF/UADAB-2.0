@@ -27,4 +27,13 @@ class RangeArgSpec(name: String) : ArgSpec<RangeArgResult>(name) {
 
     override fun default() = RangeArgResult(null, null)
 
+    override fun equals(other: Any?): Boolean {
+        if(this === other) {
+            return true
+        }
+        return super.equals(other) && other is RangeArgSpec
+    }
+
+    override fun hashCode() = super.hashCode() * 7
+
 }

@@ -19,4 +19,16 @@ class FlagArgSpec(name: String, val flagname: String? = null, val shortname: Cha
 
     override fun default() = FlagArgResult(false)
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        return super.equals(other) && other is FlagArgSpec && other.flagname == flagname && other.shortname == shortname
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode() * 3
+        result = 31 * result + (flagname?.hashCode() ?: 0)
+        result = 31 * result + (shortname?.hashCode() ?: 0)
+        return result
+    }
+
 }

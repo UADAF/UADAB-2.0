@@ -19,4 +19,17 @@ class ValueArgSpec(name: String, val argname: String? = null) : ArgSpec<ValueArg
     }
 
     override fun default() = ValueArgResult(null, null)
+
+    override fun equals(other: Any?): Boolean {
+        if(this === other) {
+            return true
+        }
+        return super.equals(other) && other is ValueArgSpec && other.argname == argname
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode() * 11
+        result = 31 * result + (argname?.hashCode() ?: 0)
+        return result
+    }
 }
