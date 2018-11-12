@@ -16,10 +16,10 @@ val gsonVersion = "2.8.5"
 dependencies {
     compile(kotlin("stdlib-jdk8"))
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
-    compile("org.jetbrains.kotlinx:kotlinx-cli:0.1")
     compile("net.dv8tion:JDA:$jdaVersion")
     compile("com.google.code.gson:gson:$gsonVersion")
     compile("org.slf4j:slf4j-simple:1.7.25")
+    testCompile("junit:junit:4.12")
 }
 
 tasks.withType<KotlinCompile> {

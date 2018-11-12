@@ -1,0 +1,30 @@
+package argparser.spec
+
+import java.lang.NumberFormatException
+
+class RangeArgResult(val from: Int?, val to: Int?) : ArgResult() {
+    override val type: String = "range"
+}
+
+class RangeArgSpec(name: String) : ArgSpec<RangeArgResult>(name) {
+
+    override val type: String = "range"
+
+    override fun parse(arg: String): RangeArgResult? {
+        val match = "(-?\\d+)?:(-?\\d+)?".toRegex().matchEntire(arg)
+        return if(match != null) {
+            try {
+                val a = match.groups[1]?.value?.toInt()
+                val b = match.groups[2]?.value?.toInt()
+                RangeArgResult(a, b)
+            } catch (e: NumberFormatException) {
+                throw IllegalArgumentException("Invalid number", e)
+            }
+        } else {
+            null
+        }
+    }
+
+    override fun default() = RangeArgResult(null, null)
+
+}
