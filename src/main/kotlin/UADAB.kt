@@ -22,7 +22,7 @@ object UADAB {
             .setBulkDeleteSplittingEnabled(false)
             .setGame(Game.watching("за пользователями"))
             .setEventManager(AnnotatedEventManager())
-            .addEventListener(EventListener)
+            .addEventListener(EventListener, Reactions)
             .setStatus(OnlineStatus.DO_NOT_DISTURB)
             .build()
     }

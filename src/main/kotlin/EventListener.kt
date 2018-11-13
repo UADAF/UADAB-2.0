@@ -1,36 +1,42 @@
 import argparser.*
+import dsl.sendPaginatedEmbed
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
+import java.awt.Color
 
 object EventListener {
 
     @SubscribeEvent
     fun ReadyEvent.ready() {
         jda.presence.status = OnlineStatus.ONLINE
+        val nas = jda.getTextChannelById("404373837287784449")
+        sendPaginatedEmbed(nas) {
+            pattern {
+                thumbnail = "http://52.48.142.75/images/gear.png"
+                title = "Root voice"
+                color = Color.GREEN
+            }
+            +"If you can hear this you are alone"
+            breakPage()
+            +"The only thing left of me is the sound of my voice"
+            breakPage()
+            +"So let me tell you who we were."
+            breakPage()
+            +"Let me tell you who you are."
+            breakPage()
+            +"Someone once asked me if I had learned anything from it all."
+            breakPage()
+            +"So let me tell you what I learned."
+            breakPage()
+            +"I learned: everyone dies alone."
+        }
     }
-
-    val parser = ArgParser()
-    val asd by parser.flag("asd", shortname = 'a')
-    val dsa by parser.flag("dsa", shortname = 'd')
-    val sda by parser.value("sda")
-    val leftover by parser.leftoverDelegate()
 
     @SubscribeEvent
     fun MessageReceivedEvent.msg() {
-        if (!author.isBot) {
-            val tokenized = tokenize(message.contentRaw)
-            channel.sendMessage(tokenized.toString()).queue()
-            parser.with(tokenized) {
-                channel.sendMessage(
-                    """Asd: ${if (asd.present) "Present" else "Absent"}
-                      |Dsa: ${if (dsa.present) "Present" else "Absent"}
-                      |Sda: ${sda.name}=${sda.value}
-                      |Leftover: $leftover""".trimMargin()
-                ).queue()
-            }
-        }
+
     }
 
 }
