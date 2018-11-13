@@ -18,19 +18,13 @@ object EventListener {
                 title = "Root voice"
                 color = Color.GREEN
             }
-            +"If you can hear this you are alone"
-            breakPage()
-            +"The only thing left of me is the sound of my voice"
-            breakPage()
-            +"So let me tell you who we were."
-            breakPage()
-            +"Let me tell you who you are."
-            breakPage()
-            +"Someone once asked me if I had learned anything from it all."
-            breakPage()
-            +"So let me tell you what I learned."
-            breakPage()
-            +"I learned: everyone dies alone."
+            page { +"If you can hear this you are alone" }
+            page { +"The only thing left of me is the sound of my voice" }
+            page { +"So let me tell you who we were." }
+            page { +"Let me tell you who you are." }
+            page { +"Someone once asked me if I had learned anything from it all." }
+            page { +"So let me tell you what I learned." }
+            page { +"I learned: everyone dies alone." }
         }
     }
 

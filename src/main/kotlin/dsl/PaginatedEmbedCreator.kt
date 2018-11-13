@@ -40,6 +40,11 @@ class PaginatedEmbedCreator : BaseEmbedCreater() {
         builder.appendDescription(this) //Can't call super-extension
     }
 
+    fun page(init: BaseEmbedCreater.() -> Unit) {
+        init()
+        breakPage()
+    }
+
     override fun field(init: FieldBuilder.() -> Unit) {
         if (builder.fields.size >= 24) {
             breakPage()
