@@ -141,4 +141,25 @@ class ArgParserTests {
         assertEquals(manual, dsl)
     }
 
+    @Test
+    fun leftover() {
+        val parser = ArgParser().apply {
+            register(PlainArgSpec("asd"))
+        }
+        val args = listOf("dsa", "sda", "asd")
+        val res = parser.parse(args)
+        assertEquals(listOf("sda", "asd"), parser.leftover)
+    }
+
+    @Test
+    fun leftoverDelegate() {
+        val parser = ArgParser().apply {
+            register(PlainArgSpec("asd"))
+        }
+        val args = listOf("dsa", "sda", "asd")
+        val leftover by parser.leftoverDelegate()
+        val res = parser.parse(args)
+        assertEquals(listOf("sda", "asd"), leftover)
+    }
+
 }

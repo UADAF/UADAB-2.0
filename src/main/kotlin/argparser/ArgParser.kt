@@ -11,6 +11,8 @@ class ArgParser {
     var results: MutableMap<String, ArgResult> = mutableMapOf()
         private set
 
+    var leftover = mutableListOf<String>()
+
     private fun parse(arg: String, visitedSpecs: Set<String>): Pair<String, ArgResult>? {
         //specs.entries to allow non-local return
         specs.entries.forEach { (name, spec) ->
@@ -24,26 +26,39 @@ class ArgParser {
         return null
     }
 
+    private fun parseMultiflag(arg: String) {
+        val r = arg.substring(1)
+            .map { c -> parse("-$c", results.keys) }
+            .filterNotNull()
+            .toList()
+        if(r.isNotEmpty()) {
+            r.forEach { (name, res) -> results[name] = res }
+        } else {
+            leftover.add(arg)
+        }
+    }
+
+    private fun parseNormal(arg: String) {
+        val r = parse(arg, results.keys)
+        if(r != null) {
+            val (name, res) = r
+            results[name] = res
+        } else {
+            leftover.add(arg)
+        }
+    }
+
     fun parse(args: List<String>): Map<String, ArgResult> {
         args.forEach { arg ->
             if(arg.length > 1 && arg[0] == '-' && arg[1] != '-') {
-                arg.substring(1)
-                    .map { c -> parse("-$c", results.keys) }
-                    .filterNotNull()
-                    .forEach { (name, res) -> results[name] = res }
+                parseMultiflag(arg)
             } else {
-                val r = parse(arg, results.keys)
-                if(r != null) {
-                    val (name, res) = r
-                    results[name] = res
-                }
+                parseNormal(arg)
             }
         }
-        specs.forEach { name, spec ->
-            if(name !in results) {
-                results[name] = spec.default()
-            }
-        }
+        specs
+            .filter { (name, _) -> name !in results }
+            .forEach{ (name, spec) -> results[name] = spec.default()}
         return results
     }
 
@@ -55,6 +70,7 @@ class ArgParser {
 
     fun reset() {
         results = mutableMapOf()
+        leftover = mutableListOf()
     }
 
     fun register(spec: ArgSpec<*>) {
@@ -62,6 +78,8 @@ class ArgParser {
     }
 
     inline fun <reified T : ArgResult> delegate(name: String) = ArgDelegate { results[name] as T }
+
+    fun leftoverDelegate() = ArgDelegate { leftover.toList() }
 
     override fun equals(other: Any?): Boolean {
         if(this === other) {
@@ -83,8 +101,9 @@ class ArgParser {
 
 }
 
-class ArgDelegate<T : ArgResult>(val getter: () -> T) {
+class ArgDelegate<T>(val getter: () -> T) {
 
     operator fun getValue(thisRef: Any?, kProp: KProperty<*>) = getter()
 
 }
+
