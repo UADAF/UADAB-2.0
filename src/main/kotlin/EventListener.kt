@@ -1,6 +1,7 @@
 import argparser.*
 import dsl.sendPaginatedEmbed
 import net.dv8tion.jda.core.OnlineStatus
+import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
@@ -10,7 +11,7 @@ object EventListener {
 
     @SubscribeEvent
     fun ReadyEvent.ready() {
-        jda.presence.status = OnlineStatus.ONLINE
+        jda.presence.setPresence(OnlineStatus.ONLINE, Game.watching("за пользователями"))
         val nas = jda.getTextChannelById("404373837287784449")
         sendPaginatedEmbed(nas) {
             pattern {

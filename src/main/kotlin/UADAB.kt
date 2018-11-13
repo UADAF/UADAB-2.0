@@ -20,7 +20,7 @@ object UADAB {
         cfg = ConfigUtils.loadConfig(Config::class.java, "config.json", JsonObject())
         bot = JDABuilder(cfg.token)
             .setBulkDeleteSplittingEnabled(false)
-            .setGame(Game.watching("за пользователями"))
+            .setGame(Game.watching("за своей загрузкой"))
             .setEventManager(AnnotatedEventManager())
             .addEventListener(EventListener, Reactions)
             .setStatus(OnlineStatus.DO_NOT_DISTURB)

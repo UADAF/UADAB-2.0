@@ -13,7 +13,7 @@ fun sendPaginatedEmbed(channel: MessageChannel, embed: PaginatedEmbedCreator.() 
         var curPage = 0
         Reactions.register(msg.id) {
             if (it.user != UADAB.bot.selfUser) {
-                val newPage = when (it.reactionEmote.name) {
+                var newPage = when (it.reactionEmote.name) {
                     "\u23ee" -> 0
                     "\u23ea" -> curPage - 1
                     "\u23f9" -> {
@@ -33,8 +33,9 @@ fun sendPaginatedEmbed(channel: MessageChannel, embed: PaginatedEmbedCreator.() 
                     else -> curPage
                 }
                 it.reaction.removeReaction(it.user).queue()
+                newPage = Math.max(0, Math.min(newPage, embeds.size - 1))
                 if (curPage != newPage) {
-                    curPage = Math.max(0, Math.min(newPage, embeds.size - 1))
+                    curPage = newPage
                     msg.editMessage(embeds[curPage]).queue()
                 }
             }
