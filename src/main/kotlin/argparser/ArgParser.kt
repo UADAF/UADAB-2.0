@@ -1,7 +1,6 @@
 package argparser
 
-import argparser.spec.ArgResult
-import argparser.spec.ArgSpec
+import argparser.spec.*
 import kotlin.reflect.KProperty
 
 class ArgParser {
@@ -27,15 +26,7 @@ class ArgParser {
     }
 
     private fun parseMultiflag(arg: String) {
-        val r = arg.substring(1)
-            .map { c -> parse("-$c", results.keys) }
-            .filterNotNull()
-            .toList()
-        if(r.isNotEmpty()) {
-            r.forEach { (name, res) -> results[name] = res }
-        } else {
-            leftover.add(arg)
-        }
+        arg.substring(1).forEach { parseNormal("-$it") }
     }
 
     private fun parseNormal(arg: String) {
@@ -78,6 +69,19 @@ class ArgParser {
     }
 
     inline fun <reified T : ArgResult> delegate(name: String) = ArgDelegate { results[name] as T }
+
+    inline fun <reified T : ArgResult> delegate(spec: ArgSpec<T>): ArgDelegate<T> {
+        register(spec)
+        return delegate(spec.name)
+    }
+
+    fun plain(name: String) = delegate(PlainArgSpec(name))
+
+    fun flag(name: String, flagname: String? = null, shortname: Char? = null) = delegate(FlagArgSpec(name, flagname, shortname))
+
+    fun range(name: String) = delegate(RangeArgSpec(name))
+
+    fun value(name: String, argname: String? = null) = delegate(ValueArgSpec(name, argname))
 
     fun leftoverDelegate() = ArgDelegate { leftover.toList() }
 

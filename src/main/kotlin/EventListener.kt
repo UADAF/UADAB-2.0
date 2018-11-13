@@ -1,10 +1,4 @@
-import argparser.ArgParser
-import argparser.argparser
-import argparser.spec.FlagArgResult
-import argparser.spec.FlagArgSpec
-import argparser.spec.ValueArgResult
-import argparser.spec.ValueArgSpec
-import argparser.tokenize
+import argparser.*
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
@@ -17,14 +11,11 @@ object EventListener {
         jda.presence.status = OnlineStatus.ONLINE
     }
 
-    val parser = argparser {
-        flag("asd", shortname = 'a')
-        flag("dsa", shortname = 'd')
-        value("sda")
-    }
-    val asd by parser.delegate<FlagArgResult>("asd")
-    val dsa by parser.delegate<FlagArgResult>("dsa")
-    val sda by parser.delegate<ValueArgResult>("sda")
+    val parser = ArgParser()
+    val asd by parser.flag("asd", shortname = 'a')
+    val dsa by parser.flag("dsa", shortname = 'd')
+    val sda by parser.value("sda")
+    val leftover by parser.leftoverDelegate()
 
     @SubscribeEvent
     fun MessageReceivedEvent.msg() {
@@ -35,7 +26,8 @@ object EventListener {
                 channel.sendMessage(
                     """Asd: ${if (asd.present) "Present" else "Absent"}
                       |Dsa: ${if (dsa.present) "Present" else "Absent"}
-                      |Sda: ${sda.name}=${sda.value}""".trimMargin()
+                      |Sda: ${sda.name}=${sda.value}
+                      |Leftover: $leftover""".trimMargin()
                 ).queue()
             }
         }

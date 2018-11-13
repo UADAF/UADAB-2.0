@@ -162,4 +162,51 @@ class ArgParserTests {
         assertEquals(listOf("sda", "asd"), leftover)
     }
 
+    @Test
+    fun multiflagLeftover() {
+        val parser = ArgParser().apply {
+            register(FlagArgSpec("asd", shortname = 'a'))
+            register(FlagArgSpec("dsa", shortname = 'd'))
+        }
+        val args = listOf("sda", "dsa", "-asd")
+        val res = parser.parse(args)
+        assertEquals(listOf("sda", "dsa", "-s"), parser.leftover)
+    }
+
+    @Test
+    fun delegateBuild() {
+        val manual = ArgParser().apply {
+            register(FlagArgSpec("asd", "fgh", 'a'))
+            register(PlainArgSpec("dsa"))
+            register(PlainArgSpec("sda"))
+            register(RangeArgSpec("ads"))
+            register(ValueArgSpec("sad", "das"))
+        }
+        val delegate = ArgParser()
+        val asd by delegate.delegate(flag("asd", "fgh", 'a'))
+        val dsa by delegate.delegate(plain("dsa"))
+        val sda by delegate.delegate(plain("sda"))
+        val ads by delegate.delegate(range("ads"))
+        val sad by delegate.delegate(value("sad", "das"))
+        assertEquals(manual, delegate)
+    }
+
+    @Test
+    fun delegateBuildShortcut() {
+        val manual = ArgParser().apply {
+            register(FlagArgSpec("asd", "fgh", 'a'))
+            register(PlainArgSpec("dsa"))
+            register(PlainArgSpec("sda"))
+            register(RangeArgSpec("ads"))
+            register(ValueArgSpec("sad", "das"))
+        }
+        val delegate = ArgParser()
+        val asd by delegate.flag("asd", "fgh", 'a')
+        val dsa by delegate.plain("dsa")
+        val sda by delegate.plain("sda")
+        val ads by delegate.range("ads")
+        val sad by delegate.value("sad", "das")
+        assertEquals(manual, delegate)
+    }
+    
 }

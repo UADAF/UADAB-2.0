@@ -32,3 +32,11 @@ fun argparser(init: ArgParserBuilder.() -> Unit): ArgParser {
     b.init()
     return b.parser
 }
+
+fun plain(name: String) = PlainArgSpec(name)
+
+fun flag(name: String, flagname: String? = null, shortname: Char? = null) = FlagArgSpec(name, flagname, shortname)
+
+fun range(name: String) = RangeArgSpec(name)
+
+fun value(name: String, argname: String? = null) = ValueArgSpec(name, argname)
