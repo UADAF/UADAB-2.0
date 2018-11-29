@@ -75,6 +75,7 @@ data class UADABUser(val name: String, val discord: User, var classification: Cl
         }
 
         fun fromDiscord(discord: User): UADABUser {
+            if(discord.idLong in byId) return byId[discord.idLong]!!
             val db = tryGetFromDB(discord.idLong)
             if (db != null) {
                 return fromDB(db)

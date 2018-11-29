@@ -7,22 +7,20 @@ import net.dv8tion.jda.core.entities.MessageEmbed
 class PatternEmbedCreator : BaseEmbedCreater()
 
 
-fun EmbedBuilder.clone(): EmbedBuilder {
-    return if (isEmpty) EmbedBuilder() else EmbedBuilder(this)
-}
+fun EmbedBuilder.clone() = if (isEmpty) EmbedBuilder() else EmbedBuilder(this)
 
 
 @EmbedDsl
 class PaginatedEmbedCreator : BaseEmbedCreater() {
     private val pattern = PatternEmbedCreator()
-    private var onBreak: PaginatedEmbedCreator.() -> Unit = {}
+    private var onBreak: Init<PaginatedEmbedCreator> = {}
     val result = mutableListOf<EmbedBuilder>()
 
-    fun onBreak(action: PaginatedEmbedCreator.() -> Unit) {
+    fun onBreak(action: Init<PaginatedEmbedCreator>) {
         onBreak = action
     }
 
-    fun pattern(init: PatternEmbedCreator.() -> Unit) {
+    fun pattern(init: Init<PatternEmbedCreator>) {
         pattern.init()
         builder = pattern.builder.clone()
     }
@@ -33,20 +31,18 @@ class PaginatedEmbedCreator : BaseEmbedCreater() {
         builder = pattern.builder.clone()
     }
 
-    override fun String.unaryPlus() {
-        if (builder.descriptionBuilder.length + length >= MessageEmbed.TEXT_MAX_LENGTH) {
-            breakPage()
-        }
-        builder.appendDescription(this) //Can't call super-extension
+    override fun text(s: String) {
+        if (builder.descriptionBuilder.length + s.length >= MessageEmbed.TEXT_MAX_LENGTH) breakPage()
+        super.text(s)
     }
 
-    fun page(init: BaseEmbedCreater.() -> Unit) {
+    fun page(init: Init<BaseEmbedCreater>) {
         init()
         breakPage()
     }
 
-    override fun field(init: FieldBuilder.() -> Unit) {
-        if (builder.fields.size >= 24) {
+    override fun field(init: Init<FieldBuilder>) {
+        if (builder.fields.size > 23) {
             breakPage()
         }
         super.field(init)
@@ -55,7 +51,8 @@ class PaginatedEmbedCreator : BaseEmbedCreater() {
     fun finish() = result.mapIndexed { i, e -> e.setFooter("Page ${i + 1}/${result.size}", null).build() }
 }
 
-fun paginatedEmbed(init: PaginatedEmbedCreator.() -> Unit): List<MessageEmbed> {
+
+inline fun paginatedEmbed(init: PaginatedEmbedCreator.() -> Unit): List<MessageEmbed> {
     val b = PaginatedEmbedCreator()
     b.init()
     return b.finish()

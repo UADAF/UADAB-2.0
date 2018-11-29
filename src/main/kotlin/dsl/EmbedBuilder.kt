@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
 import java.time.temporal.TemporalAccessor
 
+typealias Init<T> = T.() -> Unit
 
 @DslMarker
 annotation class EmbedDsl
@@ -13,10 +14,6 @@ annotation class EmbedDsl
 open class BaseEmbedCreater {
 
     var builder = EmbedBuilder()
-
-    open operator fun String.unaryPlus() {
-        builder.appendDescription(this)
-    }
 
     var thumbnail: String? = null
         set(value) {
@@ -51,23 +48,31 @@ open class BaseEmbedCreater {
     val append by lazy { FieldHolder(this, false) }
     val inline by lazy { FieldHolder(this, true) }
 
-    open fun text(init: BaseEmbedCreater.() -> String) {
-        +init()
+    open fun text(s: String) {
+        builder.appendDescription(s)
     }
 
-    open fun field(init: FieldBuilder.() -> Unit) {
+    open fun text(init: BaseEmbedCreater.() -> String) {
+        text(init())
+    }
+
+    open operator fun String.unaryPlus() {
+        text(this)
+    }
+
+    open fun field(init: Init<FieldBuilder>) {
         setElement(::FieldBuilder, init)
     }
 
-    open fun author(init: AuthorBuilder.() -> Unit) {
+    open fun author(init: Init<AuthorBuilder>) {
         setElement(::AuthorBuilder, init)
     }
 
-    open fun footer(init: FooterBuilder.() -> Unit) {
+    open fun footer(init: Init<FooterBuilder>) {
         setElement(::FooterBuilder, init)
     }
 
-    private inline fun <T : ElementBuilder> setElement(eBuilder: (EmbedBuilder) -> T, init: T.() -> Unit) {
+    private inline fun <T : ElementBuilder> setElement(eBuilder: (EmbedBuilder) -> T, init: Init<T>) {
         val b = eBuilder(this.builder)
         b.init()
         b.complete()
@@ -147,7 +152,7 @@ class AuthorBuilder(private val builder: EmbedBuilder) : ElementBuilder {
 
 }
 
-fun embed(init: BaseEmbedCreater.() -> Unit): MessageEmbed {
+inline fun embed(init: Init<BaseEmbedCreater>): MessageEmbed {
     val e = BaseEmbedCreater()
     e.init()
     return e.builder.build()
