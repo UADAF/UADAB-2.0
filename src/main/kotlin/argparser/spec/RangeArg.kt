@@ -1,7 +1,5 @@
 package argparser.spec
 
-import java.lang.NumberFormatException
-
 class RangeArgResult(val from: Int?, val to: Int?) : ArgResult() {
     override val type: String = "range"
 }

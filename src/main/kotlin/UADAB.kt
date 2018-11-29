@@ -1,9 +1,13 @@
 import com.google.gson.JsonObject
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.jetty.Jetty
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.hooks.AnnotatedEventManager
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import utils.ConfigUtils
 
 object UADAB {
@@ -13,6 +17,10 @@ object UADAB {
 
     lateinit var bot: JDA
         private set
+
+    val log: Logger = LoggerFactory.getLogger("UADAB")
+
+    val http = HttpClient(Jetty)
 
     @JvmStatic
     fun main(args: Array<String>) {

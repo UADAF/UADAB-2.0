@@ -1,7 +1,5 @@
-import net.dv8tion.jda.core.entities.MessageReaction
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
-import kotlin.streams.asSequence
 
 typealias ReactionHandler = (MessageReactionAddEvent) -> Boolean
 object Reactions {
