@@ -24,8 +24,8 @@ data class UADABUser(val name: String, val discord: User, var classification: Cl
     private fun saveTransactionless() {
         DAOUsers.upsert(DAOUsers.discordId) {
             it[name] = this@UADABUser.name
-            it[discordId] = discord.idLong
-            it[classification] = classification.name
+            it[discordId] = this@UADABUser.discord.idLong
+            it[classification] = this@UADABUser.classification.name
             it[ssn] = this@UADABUser.ssn.intVal
         }
     }
@@ -36,7 +36,7 @@ data class UADABUser(val name: String, val discord: User, var classification: Cl
         private val byId: MutableMap<Long, UADABUser> = mutableMapOf()
         private val byName: MutableMap<String, MutableList<UADABUser>> = mutableMapOf()
         private val log: Logger = LoggerFactory.getLogger("UADABUser")
-        val users = mUsers.toList()
+        val users: List<UADABUser> = mUsers
 
 
         private fun register(user: UADABUser) {
@@ -60,23 +60,23 @@ data class UADABUser(val name: String, val discord: User, var classification: Cl
             )
         }
 
-        private fun tryGetFromDB(id: Long) = transaction {
-            DAOUsers.select { DAOUsers.discordId eq id }.firstOrNull()
-        }
+        private fun tryGetFromDB(id: Long) = transaction { tryGetFromDBTransactionless(id) }
 
-        fun loadFromDB() = transaction {
-            DAOUsers.selectAll().forEach { row ->
-                try {
-                    fromDB(row)
-                } catch (e: UserNotFoundException) {
-                    log.warn("Unable to find user ${row[DAOUsers.name]}")
-                }
+        fun tryGetFromDBTransactionless(id: Long) = DAOUsers.select { DAOUsers.discordId eq id }.firstOrNull()
+
+        fun loadFromDB() = transaction { loadFromDBTransactionless() }
+
+        fun loadFromDBTransactionless() = DAOUsers.selectAll().forEach { row ->
+            try {
+                fromDB(row)
+            } catch (e: UserNotFoundException) {
+                log.warn("Unable to find user ${row[DAOUsers.name]}")
             }
         }
 
-        fun fromDiscord(discord: User): UADABUser {
+        fun fromDiscord(discord: User, openTransaction : Boolean = true): UADABUser {
             if(discord.idLong in byId) return byId[discord.idLong]!!
-            val db = tryGetFromDB(discord.idLong)
+            val db = if(openTransaction) tryGetFromDB(discord.idLong) else tryGetFromDBTransactionless(discord.idLong)
             if (db != null) {
                 return fromDB(db)
             }

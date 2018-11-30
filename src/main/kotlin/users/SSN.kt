@@ -2,6 +2,7 @@ package users
 
 import kotlin.random.Random
 import kotlin.random.asJavaRandom
+import kotlin.random.nextInt
 
 
 class SSN internal constructor(val intVal: Int) {
@@ -20,7 +21,6 @@ class SSN internal constructor(val intVal: Int) {
     override fun toString() = getSSNString(false)
 
     companion object {
-
-        internal fun randomSSN() = SSN(Random.asJavaRandom().ints(9, 0, 10).reduce { i1, i2 -> i1 * 10 + i2}.asInt)
+        internal fun randomSSN() = SSN(Random.nextInt(0..999_99_9999))
     }
 }
