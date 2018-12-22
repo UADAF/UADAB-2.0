@@ -3,8 +3,10 @@ import dsl.embed
 import dsl.sendPaginatedEmbed
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
+import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
+import net.dv8tion.jda.core.events.message.GenericMessageEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.MessageUpdateEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
@@ -37,6 +39,15 @@ object EventListener {
 
     @SubscribeEvent
     fun MessageReceivedEvent.msg() {
+        onMsg(message)
+    }
+
+    @SubscribeEvent
+    fun MessageUpdateEvent.edit() {
+        onMsg(message)
+    }
+
+    private fun GenericMessageEvent.onMsg(message: Message) {
         if(message.contentRaw.startsWith("sudo ")) {
             val tokenized = tokenize(message.contentRaw)
             if(tokenized.size > 1) {
@@ -62,11 +73,6 @@ object EventListener {
                 }
             }
         }
-    }
-
-    @SubscribeEvent
-    fun MessageUpdateEvent.edit() {
-
     }
 
 }
