@@ -12,9 +12,9 @@ repositories {
     jcenter()
     maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
-val jdaVersion = "3.8.1_439"
+val jdaVersion = "3.8.1_448"
 val gsonVersion = "2.8.5"
-val ktorVersion = "1.0.0-beta-3"
+val ktorVersion = "1.0.1"
 dependencies {
     compile(kotlin("stdlib-jdk8"))
     compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
