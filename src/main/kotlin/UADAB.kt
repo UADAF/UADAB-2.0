@@ -27,7 +27,7 @@ object UADAB {
     fun main(args: Array<String>) {
         System.setProperty("org.slf4j.simpleLogger.logFile", "System.out") //Redirect slf4j-simple to System.out from System.err
         cfg = ConfigUtils.loadConfig(Config::class.java, "config.json", JsonObject())
-        Database.Companion.connect(
+        Database.connect(
             "jdbc:mysql://${cfg.dbHost}:3306/${cfg.dbName}?useUnicode=yes&characterEncoding=UTF-8&autoReconnect=true",
             "com.mysql.jdbc.Driver",
             cfg.dbLogin,
