@@ -6,14 +6,15 @@ import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.entities.User
 import net.dv8tion.jda.core.events.message.GenericMessageEvent
+import users.UADABUser
 import java.io.File
 
 typealias Success<T> = (T) -> Unit
 typealias Failure = Success<Throwable>
 
-class CommandContext(val event: GenericMessageEvent, val message: Message) {
+class CommandContext(val message: Message, val args: List<String>) {
 
-    val author: User = message.author
+    val author by lazy { UADABUser.fromDiscord(message.author) }
 
     fun reply(msg: CharSequence,
               success: Success<Message>? = null, failure: Failure? = null)
@@ -31,6 +32,6 @@ class CommandContext(val event: GenericMessageEvent, val message: Message) {
               success: Success<Message>?, failure: Failure?)
             = message.channel.sendFile(file, fileName, msg).queue(success, failure)
 
-    fun reply(embed: PaginatedEmbedCreator.() -> Unit) = sendPaginatedEmbed(message.channel, embed)
+    fun reply(embed: PaginatedEmbedCreator.() -> Unit) = message.channel.sendPaginatedEmbed(embed)
 
 }

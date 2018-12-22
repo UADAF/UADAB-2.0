@@ -7,9 +7,9 @@ import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.entities.MessageChannel
 
 val actionReactions = listOf("\u23ee", "\u23ea", "\u23f9", "\u23e9", "\u23ed")
-fun sendPaginatedEmbed(channel: MessageChannel, embed: PaginatedEmbedCreator.() -> Unit) {
+fun MessageChannel.sendPaginatedEmbed(embed: PaginatedEmbedCreator.() -> Unit) {
     val embeds = paginatedEmbed(embed)
-    channel.sendMessage(embeds[0]).queue { msg ->
+    sendMessage(embeds[0]).queue { msg ->
         var curPage = 0
         Reactions.register(msg.id) {
             if (it.user != UADAB.bot.selfUser) {

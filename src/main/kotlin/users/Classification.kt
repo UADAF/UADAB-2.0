@@ -24,7 +24,7 @@ data class Classification(val name: String, val cornerColor: Color, val barColor
         operator fun get(s: String) = classes[s.toLowerCase()] ?: throw ClassificationNotFoundException(s)
 
         val IRRELEVANT = Classification("Irrelevant", poiColors["white"]!!, poiColors["white"]!!)
-        val ASSETS = Classification("Asset", poiColors["yellow"]!!, poiColors["yellow"]!!)
+        val ASSET = Classification("Asset", poiColors["yellow"]!!, poiColors["yellow"]!!)
         val ANALOG_INTERFACE = Classification("Analog Interface", poiColors["yellow"]!!, poiColors["black"]!!)
         val IRRELEVANT_THREAT = Classification("Threat", poiColors["red"]!!, poiColors["white"]!!)
         val RELEVANT_THREAT = Classification("Relevant Threat", poiColors["red"]!!, poiColors["white"]!!)

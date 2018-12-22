@@ -1,3 +1,5 @@
+import cmd.Command
+import cmd.CommandClient
 import com.google.gson.JsonObject
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.jetty.Jetty
@@ -9,6 +11,7 @@ import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import users.Classification
 import utils.ConfigUtils
 
 object UADAB {
@@ -18,6 +21,8 @@ object UADAB {
 
     lateinit var bot: JDA
         private set
+
+    val commandClient = CommandClient()
 
     val log: Logger = LoggerFactory.getLogger("UADAB")
 

@@ -1,15 +1,23 @@
 package cmd
-typealias CommandAction = CommandContext.() -> Unit
-open class Command(val name: String, val action: CommandAction, val onDenied: CommandAction? = null) {
 
+import users.Classification
 
+typealias CommandAction = suspend CommandContext.() -> Unit
+typealias CanPerformCheck = suspend CommandContext.() -> Boolean?
+open class Command(val name: String, val allowedClasses: Set<Classification>,
+                   val canPerform: CanPerformCheck?,
+                   val onDenied: CommandAction? = null, val action: CommandAction) {
 
-    open fun perform(context: CommandContext) {
+    open suspend fun perform(context: CommandContext) {
         context.action()
     }
 
-    open fun deny(context: CommandContext) {
+    open suspend fun deny(context: CommandContext) {
         onDenied?.invoke(context)
+    }
+
+    open suspend fun canPerform(context: CommandContext): Boolean {
+        return canPerform?.invoke(context) ?: context.author.classification in allowedClasses
     }
 
 
