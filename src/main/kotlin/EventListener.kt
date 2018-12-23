@@ -1,3 +1,4 @@
+import cmd.CommandClient
 import dsl.embed
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -12,6 +13,7 @@ import net.dv8tion.jda.core.events.message.MessageUpdateEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import org.jetbrains.exposed.sql.transactions.transaction
 import users.UADABUser
+import java.awt.Color
 
 object EventListener {
 
@@ -47,9 +49,19 @@ object EventListener {
         onMsg(message)
     }
 
-    private fun GenericMessageEvent.onMsg(message: Message) {
+    private fun onMsg(message: Message) {
         GlobalScope.launch {
-            UADAB.commandClient.handle(this@onMsg, message)
+            val (res, v) = UADAB.commandClient.handle(message)
+            when(res) {
+                CommandClient.ExecutionResult.ERROR -> {
+                    message.channel.sendMessage(embed {
+                        color = Color.RED
+                        title = "Something went wrong"
+                        +v
+                    }).queue()
+                }
+                else -> {}
+            }
         }
     }
 

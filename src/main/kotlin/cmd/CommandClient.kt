@@ -38,6 +38,10 @@ class CommandClient {
         register(commandList(commands.init()))
     }
 
+    fun register(vararg commands: ICommandList) {
+        commands.forEach(::register)
+    }
+
     suspend fun handle(message: Message): Pair<ExecutionResult, String> {
         val tokenized = tokenize(message.contentRaw)
         if(tokenized.size < 2 || tokenized[0] != "sudo") {
@@ -59,7 +63,7 @@ class CommandClient {
                 command.deny(context)
             }
         } catch (e: Exception) {
-            return ExecutionResult.ERROR to e.localizedMessage
+            return ExecutionResult.ERROR to "${e.javaClass.simpleName}: ${e.localizedMessage}"
         }
 
 

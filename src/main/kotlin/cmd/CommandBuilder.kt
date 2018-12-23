@@ -2,6 +2,7 @@
 
 package cmd
 
+import argparser.ArgParser
 import users.Classification
 import users.NORMAL
 
@@ -22,6 +23,7 @@ class CommandBuilder {
     var aliases = mutableListOf<String>()
     val allowed by lazy { AllowedToSetter(this) }
 
+    val parser by lazy { ArgParser() }
 
     fun action(a: CommandAction) {
         _action = a

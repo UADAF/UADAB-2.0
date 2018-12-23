@@ -1,6 +1,7 @@
 import cmd.Command
 import cmd.CommandClient
 import com.google.gson.JsonObject
+import commands.SystemCommands
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.jetty.Jetty
 import net.dv8tion.jda.core.JDA
@@ -38,6 +39,9 @@ object UADAB {
             cfg.dbLogin,
             cfg.dbPass
         )
+
+        commandClient.register(SystemCommands)
+
         bot = JDABuilder(cfg.token)
             .setBulkDeleteSplittingEnabled(false)
             .setGame(Game.watching("за своей загрузкой"))

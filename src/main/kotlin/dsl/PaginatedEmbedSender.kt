@@ -9,6 +9,13 @@ import net.dv8tion.jda.core.entities.MessageChannel
 val actionReactions = listOf("\u23ee", "\u23ea", "\u23f9", "\u23e9", "\u23ed")
 fun MessageChannel.sendPaginatedEmbed(embed: PaginatedEmbedCreator.() -> Unit) {
     val embeds = paginatedEmbed(embed)
+    if(embeds.isEmpty()) {
+        return
+    }
+    if(embeds.size == 1) {
+        sendMessage(embeds[0]).queue()
+        return
+    }
     sendMessage(embeds[0]).queue { msg ->
         var curPage = 0
         Reactions.register(msg.id) {
