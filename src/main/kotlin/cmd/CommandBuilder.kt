@@ -5,6 +5,7 @@ package cmd
 import argparser.ArgParser
 import users.Classification
 import users.NORMAL
+import kotlin.reflect.jvm.isAccessible
 
 
 typealias Init<T> = T.() -> Unit
@@ -26,7 +27,11 @@ class CommandBuilder {
     val parser by lazy { ArgParser() }
 
     fun action(a: CommandAction) {
-        _action = a
+        _action = {
+            parser.with(args) {
+                a()
+            }
+        }
     }
 
     fun onDenied(a: CommandAction) {

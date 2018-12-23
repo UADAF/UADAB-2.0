@@ -28,26 +28,24 @@ object SystemCommands : ICommandList {
 
             action {
                 reply {
-                    parser.with(args) {
-                        pattern {
-                            color = Color.GREEN
-                        }
-                        if (binary.present) page {
-                            title = "Binary π"
-                            +stringify(java.lang.Long::toBinaryString)
-                        }
-                        if (octal.present) page {
-                            title = "Octal π"
-                            +stringify(java.lang.Long::toOctalString)
-                        }
-                        if (decimal.present || !(binary.present || octal.present || hexadecimal.present)) page {
-                            title = "Decimal π"
-                            +stringify(Long::toString)
-                        }
-                        if (hexadecimal.present) page {
-                            title = "Hexadecimal π"
-                            +stringify(java.lang.Long::toHexString)
-                        }
+                    pattern {
+                        color = Color.GREEN
+                    }
+                    if (binary.present) page {
+                        title = "Binary π"
+                        +stringify(java.lang.Long::toBinaryString)
+                    }
+                    if (octal.present) page {
+                        title = "Octal π"
+                        +stringify(java.lang.Long::toOctalString)
+                    }
+                    if (decimal.present || !(binary.present || octal.present || hexadecimal.present)) page {
+                        title = "Decimal π"
+                        +stringify(Long::toString)
+                    }
+                    if (hexadecimal.present) page {
+                        title = "Hexadecimal π"
+                        +stringify(java.lang.Long::toHexString)
                     }
                 }
             }
