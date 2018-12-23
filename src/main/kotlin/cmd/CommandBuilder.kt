@@ -19,7 +19,7 @@ class CommandBuilder {
     private var _onDenied: CommandAction? = null
     private var _canPerformCheck: CanPerformCheck? = null
     var allowedClasses: Set<Classification> = NORMAL
-
+    var aliases = mutableListOf<String>()
     val allowed by lazy { AllowedToSetter(this) }
 
 
@@ -35,7 +35,13 @@ class CommandBuilder {
         _canPerformCheck = a
     }
 
-    fun build() = Command(name, allowedClasses, _canPerformCheck, _onDenied, _action)
+    fun aliases(init: Init<AliasesBuilder>) {
+        val b = AliasesBuilder(this)
+        b.init()
+        aliases.addAll(b.aliases)
+    }
+
+    fun build() = Command(name, aliases, allowedClasses, _canPerformCheck, _onDenied, _action)
 
 }
 
@@ -48,6 +54,18 @@ class AllowedToSetter(val b: CommandBuilder) {
 
 }
 
+@CommandBuilderDsl
+class AliasesBuilder(val b: CommandBuilder) {
+
+    val aliases = mutableListOf<String>()
+
+    operator fun String.unaryPlus() {
+        aliases.add(this)
+    }
+
+}
+
+@CommandBuilderDsl
 class CommandListBuilder {
 
     val cl = mutableListOf<Command>()

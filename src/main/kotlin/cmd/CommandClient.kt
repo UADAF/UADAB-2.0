@@ -23,6 +23,7 @@ class CommandClient {
 
     fun register(command: Command) {
         _commands[command.name] = command
+        command.aliases.forEach { _commands[it] = command }
     }
 
     fun register(vararg commands: Command) {
