@@ -48,7 +48,15 @@ class PaginatedEmbedCreator : BaseEmbedCreater() {
         super.field(init)
     }
 
-    fun finish() = result.mapIndexed { i, e -> e.setFooter("Page ${i + 1}/${result.size}", null).build() }
+    fun finish(): List<MessageEmbed> {
+        if (!builder.isEmpty) {
+            breakPage()
+        }
+        if(result.size == 1) {
+            return listOf(result[0].build())
+        }
+        return result.mapIndexed { i, e -> e.setFooter("Page ${i + 1}/${result.size}", null).build() }
+    }
 }
 
 

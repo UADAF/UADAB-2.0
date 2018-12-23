@@ -1,52 +1,62 @@
 package commands
 
-import argparser.ArgParser
+import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
-import users.EVERYONE
+import users.assets
 import java.awt.Color
 
 object SystemCommands : ICommandList {
 
+    override val cat = CommandCategory("System", Color(0x5E5E5E), "http://52.48.142.75/images/gear.png")
 
     override fun init(): Init<CommandListBuilder> = {
-        command("pi") {
-            aliases {
-                +"π"
-            }
-            allowed to EVERYONE
-            val binary by parser.flag("binary", shortname = 'b')
-            val octal by parser.flag("octal", shortname = 'o')
-            val decimal by parser.flag("decimal", shortname = 'd')
-            val hexadecimal by parser.flag("hexadecimal", shortname = 'x')
-
-            fun stringify(toString: (Long) -> String): String {
-                val (intPart, fracPart) = Math.PI.toString().split('.')
-                return "${toString(intPart.toLong())}.${toString(fracPart.toLong())}"
-            }
-
+        command("asd") {
+            allowed to assets
             action {
-                reply {
-                    pattern {
-                        color = Color.GREEN
-                    }
-                    if (binary.present) page {
-                        title = "Binary π"
-                        +stringify(java.lang.Long::toBinaryString)
-                    }
-                    if (octal.present) page {
-                        title = "Octal π"
-                        +stringify(java.lang.Long::toOctalString)
-                    }
-                    if (decimal.present || !(binary.present || octal.present || hexadecimal.present)) page {
-                        title = "Decimal π"
-                        +stringify(Long::toString)
-                    }
-                    if (hexadecimal.present) page {
-                        title = "Hexadecimal π"
-                        +stringify(java.lang.Long::toHexString)
-                    }
+                val u = author.discord
+                val ch = guild.getMember(u).voiceState.channel ?: return@action replyCat {
+                    color = Color.RED
+                    title = "Unable to join"
+                    +"You must be in voice channel"
+                }
+                guild.audioManager.openAudioConnection(ch)
+                replyCat {
+                    color = Color.GREEN
+                    title = "Success"
+                    +"Joined"
+                }
+            }
+            onDenied {
+                replyCat {
+                    color = Color.RED
+                    title = "Sorry"
+                    +"You are not allowed to control me"
+                }
+            }
+        }
+        command("dsa") {
+            allowed to assets
+            action {
+                val u = author.discord
+                val ch = guild.selfMember.voiceState.channel ?: return@action replyCat {
+                    color = Color.RED
+                    title = "Unable to leave"
+                    +"I am not in voice channel"
+                }
+                guild.audioManager.closeAudioConnection()
+                replyCat {
+                    color = Color.GREEN
+                    title = "Success"
+                    +"Left"
+                }
+            }
+            onDenied {
+                replyCat {
+                    color = Color.RED
+                    title = "Sorry"
+                    +"You are not allowed to control me"
                 }
             }
         }

@@ -2,7 +2,6 @@ package cmd
 
 import argparser.tokenize
 import net.dv8tion.jda.core.entities.Message
-import net.dv8tion.jda.core.events.message.GenericMessageEvent
 
 class CommandClient {
 
@@ -35,7 +34,7 @@ class CommandClient {
     }
 
     fun register(commands: ICommandList) {
-        register(commandList(commands.init()))
+        register(commandList(commands.init(), commands.cat))
     }
 
     fun register(vararg commands: ICommandList) {

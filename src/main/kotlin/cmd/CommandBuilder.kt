@@ -4,8 +4,8 @@ package cmd
 
 import argparser.ArgParser
 import users.Classification
-import users.NORMAL
-import kotlin.reflect.jvm.isAccessible
+import users.default
+import java.lang.IllegalStateException
 
 
 typealias Init<T> = T.() -> Unit
@@ -17,10 +17,11 @@ annotation class CommandBuilderDsl
 class CommandBuilder {
 
     var name: String = ""
+    var category: CommandCategory? = null
     private var _action: CommandAction = {}
     private var _onDenied: CommandAction? = null
     private var _canPerformCheck: CanPerformCheck? = null
-    var allowedClasses: Set<Classification> = NORMAL
+    var allowedClasses: Set<Classification> = default
     var aliases = mutableListOf<String>()
     val allowed by lazy { AllowedToSetter(this) }
 
@@ -48,7 +49,9 @@ class CommandBuilder {
         aliases.addAll(b.aliases)
     }
 
-    fun build() = Command(name, aliases, allowedClasses, _canPerformCheck, _onDenied, _action)
+    fun build() = Command(name, aliases,
+        category ?: throw IllegalStateException("Category must be initialized"),
+        allowedClasses, _canPerformCheck, _onDenied, _action)
 
 }
 
@@ -73,12 +76,13 @@ class AliasesBuilder(val b: CommandBuilder) {
 }
 
 @CommandBuilderDsl
-class CommandListBuilder {
+class CommandListBuilder(val category: CommandCategory) {
 
     val cl = mutableListOf<Command>()
 
     fun command(name: String? = null, init: Init<CommandBuilder>) {
         val b = CommandBuilder()
+        b.category = category
         if(name != null) {
             b.name = name
         }
@@ -94,8 +98,8 @@ fun createCommand(init: Init<CommandBuilder>): Command {
     return b.build()
 }
 
-fun commandList(init: Init<CommandListBuilder>): List<Command> {
-    val b = CommandListBuilder()
+fun commandList(init: Init<CommandListBuilder>, category: CommandCategory): List<Command> {
+    val b = CommandListBuilder(category)
     b.init()
     return b.cl
 }

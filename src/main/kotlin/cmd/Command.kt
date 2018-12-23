@@ -4,7 +4,7 @@ import users.Classification
 
 typealias CommandAction = suspend CommandContext.() -> Unit
 typealias CanPerformCheck = suspend CommandContext.() -> Boolean?
-open class Command(val name: String, val aliases: List<String>,
+open class Command(val name: String, val aliases: List<String>, val category: CommandCategory,
                    val allowedClasses: Set<Classification>, val canPerform: CanPerformCheck?,
                    val onDenied: CommandAction? = null, val action: CommandAction) {
 

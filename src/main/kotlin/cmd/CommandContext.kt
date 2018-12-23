@@ -2,6 +2,7 @@ package cmd
 
 import dsl.PaginatedEmbedCreator
 import dsl.sendPaginatedEmbed
+import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageEmbed
 import net.dv8tion.jda.core.entities.User
@@ -15,6 +16,10 @@ typealias Failure = Success<Throwable>
 class CommandContext(val message: Message, val args: List<String>) {
 
     val author by lazy { UADABUser.fromDiscord(message.author) }
+
+    val guild: Guild
+        get() = message.guild
+
 
     fun reply(msg: CharSequence,
               success: Success<Message>? = null, failure: Failure? = null)
