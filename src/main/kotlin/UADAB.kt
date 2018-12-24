@@ -1,9 +1,11 @@
 import cmd.Command
 import cmd.CommandClient
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import commands.MiscCommands
 import commands.SystemCommands
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.jetty.Jetty
+import io.ktor.client.engine.apache.Apache
 import net.dv8tion.jda.core.JDA
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.OnlineStatus
@@ -26,8 +28,8 @@ object UADAB {
     val commandClient = CommandClient()
 
     val log: Logger = LoggerFactory.getLogger("UADAB")
-
-    val http = HttpClient(Jetty)
+    val parser: JsonParser = JsonParser()
+    val http = HttpClient(Apache)
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -40,7 +42,7 @@ object UADAB {
             cfg.dbPass
         )
 
-        commandClient.register(SystemCommands)
+        commandClient.register(SystemCommands, MiscCommands)
 
         bot = JDABuilder(cfg.token)
             .setBulkDeleteSplittingEnabled(false)

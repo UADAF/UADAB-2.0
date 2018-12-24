@@ -4,6 +4,7 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
+import net.dv8tion.jda.core.exceptions.InsufficientPermissionException
 import users.assets
 import java.awt.Color
 
@@ -21,11 +22,26 @@ object SystemCommands : ICommandList {
                     title = "Unable to join"
                     +"You must be in voice channel"
                 }
-                guild.audioManager.openAudioConnection(ch)
-                replyCat {
-                    color = Color.GREEN
-                    title = "Success"
-                    +"Joined"
+
+                if (ch.userLimit >= ch.members.count()) return@action replyCat {
+                        color = Color.RED
+                        title = "Users limit exceeded"
+                        +"Kick someone, please"
+                }
+
+                try {
+                    guild.audioManager.openAudioConnection(ch)
+                    replyCat {
+                        color = Color.GREEN
+                        title = "Success"
+                        +"Joined"
+                    }
+                } catch(e: InsufficientPermissionException) {
+                    replyCat {
+                        color = Color.RED
+                        title = "I-I can't. It's... gone..."
+                        +"Conditions satisfied. Engaging Purge Precept."
+                    }
                 }
             }
             onDenied {
@@ -39,12 +55,12 @@ object SystemCommands : ICommandList {
         command("dsa") {
             allowed to assets
             action {
-                val u = author.discord
-                val ch = guild.selfMember.voiceState.channel ?: return@action replyCat {
+                if (guild.selfMember.voiceState.channel == null) return@action replyCat {
                     color = Color.RED
                     title = "Unable to leave"
                     +"I am not in voice channel"
                 }
+
                 guild.audioManager.closeAudioConnection()
                 replyCat {
                     color = Color.GREEN

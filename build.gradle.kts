@@ -23,7 +23,7 @@ dependencies {
     compile("org.slf4j:slf4j-simple:1.7.25")
     compile("de.codecentric.centerdevice:javafxsvg:1.3.0")
     compile("io.ktor:ktor-client-core:$ktorVersion")
-    compile("io.ktor:ktor-client-jetty:$ktorVersion")
+    compile("io.ktor:ktor-client-apache:$ktorVersion")
     compile("org.jetbrains.exposed:exposed:0.10.4")
     compile("mysql:mysql-connector-java:5.1.1")
     testCompile("junit:junit:4.12")
