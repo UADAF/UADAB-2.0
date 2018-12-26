@@ -4,9 +4,11 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException
+import net.dv8tion.jda.core.Permission
 import users.assets
 import java.awt.Color
+import java.nio.file.Files
+import java.nio.file.Paths
 
 object SystemCommands : ICommandList {
 
@@ -14,6 +16,11 @@ object SystemCommands : ICommandList {
 
     override fun init(): Init<CommandListBuilder> = {
         command("asd") {
+            val d = Paths.get("")
+            if (!Files.exists(d)) {
+                Files.createDirectories(d.parent)
+                Files.createFile(d)
+            }
             allowed to assets
             action {
                 val u = author.discord
@@ -24,24 +31,22 @@ object SystemCommands : ICommandList {
                 }
 
                 if (ch.userLimit >= ch.members.count()) return@action replyCat {
-                        color = Color.RED
-                        title = "Users limit exceeded"
-                        +"Kick someone, please"
+                    color = Color.RED
+                    title = "Users limit exceeded"
+                    +"Kick someone, please"
                 }
 
-                try {
-                    guild.audioManager.openAudioConnection(ch)
-                    replyCat {
-                        color = Color.GREEN
-                        title = "Success"
-                        +"Joined"
-                    }
-                } catch(e: InsufficientPermissionException) {
-                    replyCat {
-                        color = Color.RED
-                        title = "I-I can't. It's... gone..."
-                        +"Conditions satisfied. Engaging Purge Precept."
-                    }
+                if (!guild.selfMember.hasPermission(Permission.VOICE_CONNECT)) return@action replyCat {
+                    color = Color.RED
+                    title = "I-I can't. It's... gone..."
+                    +"Conditions satisfied. Engaging Purge Precept."
+                }
+
+                guild.audioManager.openAudioConnection(ch)
+                replyCat {
+                    color = Color.GREEN
+                    title = "Success"
+                    +"Joined"
                 }
             }
             onDenied {
