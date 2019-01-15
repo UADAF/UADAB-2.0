@@ -25,7 +25,7 @@ object UADAB {
     lateinit var bot: JDA
         private set
 
-    val commandClient = CommandClient()
+    val commandClient = CommandClient("sudo")
 
     val log: Logger = LoggerFactory.getLogger("UADAB")
     val parser: JsonParser = JsonParser()

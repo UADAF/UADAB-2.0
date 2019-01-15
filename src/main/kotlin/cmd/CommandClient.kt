@@ -3,7 +3,7 @@ package cmd
 import argparser.tokenize
 import net.dv8tion.jda.core.entities.Message
 
-class CommandClient {
+class CommandClient(val prefix: String) {
 
     enum class ExecutionResult {
         SUCCESS,
@@ -43,7 +43,7 @@ class CommandClient {
 
     suspend fun handle(message: Message): Pair<ExecutionResult, String> {
         val tokenized = tokenize(message.contentRaw)
-        if(tokenized.size < 2 || tokenized[0] != "sudo") {
+        if(tokenized.size < 2 || tokenized[0] != prefix) {
             return ExecutionResult.NOT_A_COMMAND to ""
         }
         val cmd = tokenized[1]

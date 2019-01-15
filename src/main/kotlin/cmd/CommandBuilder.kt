@@ -21,6 +21,8 @@ class CommandBuilder {
     private var _action: CommandAction = {}
     private var _onDenied: CommandAction? = null
     private var _canPerformCheck: CanPerformCheck? = null
+    var args: String = ""
+    var help: String = ""
     var allowedClasses: Set<Classification> = default
     var aliases = mutableListOf<String>()
     val allowed by lazy { AllowedToSetter(this) }
@@ -51,7 +53,7 @@ class CommandBuilder {
 
     fun build() = Command(name, aliases,
         category ?: throw IllegalStateException("Category must be initialized"),
-        allowedClasses, _canPerformCheck, _onDenied, _action)
+        args, help, allowedClasses, _canPerformCheck, _onDenied, _action)
 
 }
 
