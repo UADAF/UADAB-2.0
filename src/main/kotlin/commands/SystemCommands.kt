@@ -130,20 +130,27 @@ object SystemCommands : ICommandList {
                     var curCat: CommandCategory? = null
                     reply {
                         UADAB.commandClient.commands.forEach { name, cmd ->
-                            if (cmd.category != curCat) {
-                                if (curCat != null) {
-                                    breakPage()
+                            if (!cmd.hidden) {
+                                if (cmd.category != curCat) {
+                                    if (curCat != null) {
+                                        breakPage()
+                                    }
+                                    curCat = cmd.category
+                                    color = cmd.category.color
+                                    title = cmd.category.name
+                                    thumbnail = cmd.category.img
                                 }
-                                curCat = cmd.category
-                                color = cmd.category.color
-                                title = cmd.category.name
-                                thumbnail = cmd.category.img
+                                append field "${UADAB.commandClient.prefix} $name ${cmd.args}" to cmd.help
                             }
-                            append field "${UADAB.commandClient.prefix} $name ${cmd.args}" to cmd.help
                         }
                     }
                 }
             }
+        }
+        command("404") {
+            allowed to everyone
+            hidden = true
+            action { reply("Фыфырифтофыфыри!") }
         }
     }
 
