@@ -16,7 +16,7 @@ object MiscCommands : ICommandList {
     override fun init(): Init<CommandListBuilder> = {
         command("http") {
             help = "Get info about http codes"
-            args = "(i%code1%)+? -(-n)o-description"
+            args = "(i%code%)+? -(-n)o-description"
             val noDescription by parser.flag("no-description", shortname = 'n')
             val arguments by parser.leftoverDelegate()
 
