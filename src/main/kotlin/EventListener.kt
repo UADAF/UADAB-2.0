@@ -1,6 +1,7 @@
 import cmd.CommandClient
 import dsl.embed
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
@@ -12,6 +13,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.MessageUpdateEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import org.jetbrains.exposed.sql.transactions.transaction
+import sources.ExternalSourceRegistry
 import users.UADABUser
 import java.awt.Color
 
@@ -20,8 +22,18 @@ object EventListener {
     @SubscribeEvent
     fun ReadyEvent.ready() {
         jda.presence.setPresence(OnlineStatus.ONLINE, Game.watching("за пользователями"))
-        transaction {
-            jda.users.forEach { UADABUser.fromDiscord(it, openTransaction = false) }
+        GlobalScope.launch {
+            transaction {
+                jda.users.forEach { UADABUser.fromDiscord(it, openTransaction = false) }
+            }
+        }
+        GlobalScope.launch {
+            UADAB.log.debug("Loading...")
+            ExternalSourceRegistry.sources.forEach {
+                launch {
+                    it.startLoading()
+                }
+            }
         }
     }
 

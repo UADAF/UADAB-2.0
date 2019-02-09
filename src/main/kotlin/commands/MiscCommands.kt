@@ -4,9 +4,8 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
-import io.ktor.http.HttpStatusCode
-import utils.HTTPStatusCode
-import utils.HttpCodes
+import sources.HttpCodeSource
+import sources.get
 import java.awt.Color
 
 object MiscCommands : ICommandList {
@@ -21,16 +20,16 @@ object MiscCommands : ICommandList {
             val arguments by parser.leftoverDelegate()
 
             action {
-                val dataSet = HttpCodes.getDataSet().await()
+                val dataSet = HttpCodeSource.get()
 
-                val codes: ArrayList<HTTPStatusCode> = ArrayList()
+                val codes: ArrayList<HttpCodeSource.HTTPStatusCode> = ArrayList()
                 val invalids: ArrayList<String> = ArrayList()
 
                 arguments.forEach {
                     val intValue = it.toIntOrNull()
 
                     if (intValue != null && dataSet.containsKey(intValue)) {
-                        codes.add(dataSet[intValue]!!)
+                        codes.add(dataSet.getValue(intValue))
                     } else  {
                         invalids.add(it)
                     }
