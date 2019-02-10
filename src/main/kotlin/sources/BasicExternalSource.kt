@@ -13,7 +13,6 @@ abstract class BasicExternalSource<T> : IExternalSource<T> {
         } catch (e: Throwable) {
             data.completeExceptionally(e)
         }
-        println("${javaClass.simpleName} loaded")
     }
 
     abstract suspend fun load(): T
