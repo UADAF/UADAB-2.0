@@ -5,8 +5,6 @@ import dsl.sendPaginatedEmbed
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.entities.MessageEmbed
-import net.dv8tion.jda.core.entities.User
-import net.dv8tion.jda.core.events.message.GenericMessageEvent
 import users.UADABUser
 import java.io.File
 

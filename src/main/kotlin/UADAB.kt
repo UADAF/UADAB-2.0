@@ -1,4 +1,3 @@
-import cmd.Command
 import cmd.CommandClient
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -14,7 +13,6 @@ import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import users.Classification
 import utils.ConfigUtils
 
 object UADAB {

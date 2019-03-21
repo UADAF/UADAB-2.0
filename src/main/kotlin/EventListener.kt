@@ -1,14 +1,12 @@
 import cmd.CommandClient
 import dsl.embed
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Message
 import net.dv8tion.jda.core.events.ReadyEvent
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent
-import net.dv8tion.jda.core.events.message.GenericMessageEvent
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent
 import net.dv8tion.jda.core.events.message.MessageUpdateEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent

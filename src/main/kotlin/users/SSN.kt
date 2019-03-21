@@ -1,7 +1,6 @@
 package users
 
 import kotlin.random.Random
-import kotlin.random.asJavaRandom
 import kotlin.random.nextInt
 
 

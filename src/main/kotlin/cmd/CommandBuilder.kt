@@ -5,7 +5,6 @@ package cmd
 import argparser.ArgParser
 import users.Classification
 import users.default
-import java.lang.IllegalStateException
 
 
 typealias Init<T> = T.() -> Unit
