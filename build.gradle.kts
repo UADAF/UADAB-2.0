@@ -10,6 +10,7 @@ version = "2.0-SNAPSHOT"
 repositories {
     mavenCentral()
     jcenter()
+    maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
 val jdaVersion = "3.8.1_448"
@@ -26,6 +27,7 @@ dependencies {
     compile("io.ktor:ktor-client-apache:$ktorVersion")
     compile("org.jetbrains.exposed:exposed:0.10.4")
     compile("mysql:mysql-connector-java:5.1.1")
+    compile("com.github.kizitonwose.time:time:1.0.2")
     testCompile("junit:junit:4.12")
 }
 
