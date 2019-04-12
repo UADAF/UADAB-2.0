@@ -90,7 +90,7 @@ object EventListener {
 
     private fun bashCheck(message: Message) {
         GlobalScope.launch {
-            val matches = """(https?:\/\/)?(bash\.im\/quote\/)(\d+)""".toRegex().find(message.contentRaw) ?: return@launch
+            val matches = """(https?://)?(bash\.im/quote/)(\d+)""".toRegex().find(message.contentRaw) ?: return@launch
             if (matches.groups.count() != 4) return@launch
 
             val quote = BashUtils.fetchQuote(message.contentRaw) ?: return@launch
@@ -104,7 +104,7 @@ object EventListener {
                     thumbnail = "https://bash.im/favicon-180x180.png"
                     color = Color.white
                 }
-                + quote.content
+                +quote.content
             }
         }
     }
