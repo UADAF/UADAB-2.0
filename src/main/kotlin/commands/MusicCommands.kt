@@ -147,7 +147,7 @@ object MusicCommands : ICommandList {
         }
     }
 
-    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {pla
+    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {
         thumbnail = data.imgUrl ?: cat.img
         +formatData(data)
         embed()
