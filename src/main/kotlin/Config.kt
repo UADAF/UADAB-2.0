@@ -19,6 +19,12 @@ class Config {
     lateinit var dbName: String
         private set
 
+    lateinit var musicDir: String
+        private set
+
+    lateinit var musicMetaUrl: String
+        private set
+
 
     @ConfigUtils.ManualConfigProperty
     lateinit var token: String

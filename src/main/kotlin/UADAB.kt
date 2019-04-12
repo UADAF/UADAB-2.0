@@ -2,6 +2,7 @@ import cmd.CommandClient
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import commands.MiscCommands
+import commands.MusicCommands
 import commands.SystemCommands
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
@@ -40,7 +41,7 @@ object UADAB {
             cfg.dbPass
         )
 
-        commandClient.register(SystemCommands, MiscCommands)
+        commandClient.register(SystemCommands, MiscCommands, MusicCommands)
 
         bot = JDABuilder(cfg.token)
             .setBulkDeleteSplittingEnabled(false)

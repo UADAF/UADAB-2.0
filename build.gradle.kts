@@ -10,6 +10,7 @@ version = "2.0-SNAPSHOT"
 repositories {
     mavenCentral()
     jcenter()
+    maven { url = uri("http://52.48.142.75/maven") }
     maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
@@ -28,6 +29,8 @@ dependencies {
     compile("org.jetbrains.exposed:exposed:0.10.4")
     compile("mysql:mysql-connector-java:5.1.1")
     compile("com.github.kizitonwose.time:time:1.0.2")
+    compile("com.uadaf:uadamusic:2.5")
+    compile("com.sedmelluq:lavaplayer:1.3.12")
     testCompile("junit:junit:4.12")
 }
 

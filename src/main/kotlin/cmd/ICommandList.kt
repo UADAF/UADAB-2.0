@@ -10,8 +10,10 @@ interface ICommandList {
 
 
     fun CommandContext.replyCat(embed: PaginatedEmbedCreator.() -> Unit) = reply {
-        thumbnail = cat.img
         embed()
+        if(thumbnail == null) {
+            thumbnail = cat.img
+        }
     }
 
 }
