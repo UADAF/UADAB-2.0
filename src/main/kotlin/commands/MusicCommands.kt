@@ -3,6 +3,7 @@ package commands
 import cmd.*
 import dsl.PaginatedEmbedCreator
 import dsl.embed
+import io.ktor.client.call.call
 import music.*
 import users.assets
 import java.lang.IllegalArgumentException
@@ -13,6 +14,7 @@ import uadamusic.MusicData
 import java.awt.Color
 import java.awt.Color.*
 import music.MusicHandler.data
+import net.dv8tion.jda.core.entities.Guild
 
 object MusicCommands : ICommandList {
 
@@ -104,6 +106,11 @@ object MusicCommands : ICommandList {
             help = "Put music on pause"
             action {
                 MusicHandler.pause(guild)
+                replyCat {
+                    color = GREEN
+                    title = "Paused"
+                    thumbnail = currentImg(guild)
+                }
             }
         }
         command("resume") {
@@ -111,13 +118,24 @@ object MusicCommands : ICommandList {
             help = "Resume music"
             action {
                 MusicHandler.resume(guild)
+                replyCat {
+                    color = GREEN
+                    title = "Resumed"
+                    thumbnail = currentImg(guild)
+                }
             }
         }
         command("clear") {
             allowed to assets
             help = "Clears playlist"
             action {
+                val img = currentImg(guild)
                 MusicHandler.reset(guild)
+                replyCat {
+                    color = GREEN
+                    title = "Cleared"
+                    thumbnail = img
+                }
             }
         }
         command("playlist") {
@@ -139,13 +157,121 @@ object MusicCommands : ICommandList {
                         }
                         +"1: ${formatData(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
                         pl.forEachIndexed { i, e ->
-                            +"${i + 2}: ${formatData(e.data)}"
+                            +"${i + 2}: ${formatData(e.data)}\n"
                         }
                     }
                 }
             }
         }
+        command("skip") {
+            allowed to assets
+            help = "Skip specified song, use without arg to skip current"
+            val skipRange by parser.range("range")
+            val skipPlain by parser.leftoverDelegate()
+            fun CommandContext.skip(id: Int) {
+                val skipped = MusicHandler.skip(id, guild)
+                replyData(skipped.data) {
+                    color = GREEN
+                    title = "Skipped"
+                }
+            }
+
+            action {
+                if(MusicHandler.playlistSize(guild) == 0) {
+                    replyCat {
+                        color = RED
+                        title = "Nothing playing"
+                    }
+                    return@action
+                }
+                var (start, end) = skipRange
+                if(start == null && end == null) {
+                    if(skipPlain.isEmpty()) {
+                        skip(0)
+                    } else {
+                        var n = skipPlain.joinToString("").toInt()
+                        if (n < 0) {
+                            n += MusicHandler.playlistSize(guild) + 1
+                            if(n < 0) {
+                                reply {
+                                    color = RED
+                                    title = "Not enough songs in playlist"
+                                    thumbnail = currentImg(guild)
+                                }
+                                return@action
+                            }
+                        }
+                        if (n > MusicHandler.playlistSize(guild)) {
+                            reply {
+                                color = RED
+                                title = "Not enough songs in playlist"
+                                thumbnail = currentImg(guild)
+                            }
+                        } else {
+                            val skipped = MusicHandler.skip(n - 1, guild)
+                            replyData(skipped.data) {
+                                color = GREEN
+                                title = "Skipped"
+                            }
+                        }
+                    }
+                } else {
+                    if (start == null) {
+                        start = 1
+                    }
+                    if (end == null) {
+                        end = MusicHandler.playlistSize(guild) + 1
+                    }
+                    //start is inclusive, end is exclusive
+                    start--
+                    end--
+                    if(start < 0) {
+                        start += MusicHandler.playlistSize(guild) + 1
+                        if(start < 0) {
+                            replyCat {
+                                color = RED
+                                title = "Invalid range"
+                            }
+                            return@action
+                        }
+                    }
+                    if(end < 0) {
+                        end += MusicHandler.playlistSize(guild) + 1
+                        if(end < 0) {
+                            replyCat {
+                                color = RED
+                                title = "Invalid range"
+                            }
+                            return@action
+                        }
+                    }
+                    //Always skip start, because skipping changes playlist, so to skip i after n skips, we should skip i - n, and for successive skips it's always starting i
+                    val skipped = (start until end).map { MusicHandler.skip(start, guild) }
+                    if (skipped.isEmpty()) {
+                        replyCat {
+                            color = RED
+                            title = "Invalid range"
+                        }
+                    } else {
+                        reply {
+                            pattern {
+                                color = GREEN
+                                title = "Skipped"
+                                thumbnail = skipped.first().data.imgUrl ?: cat.img
+                            }
+                            skipped.forEach {
+                                +formatData(it.data)
+                                +"\n"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
     }
+
+    fun currentImg(guild: Guild): String = MusicHandler.currentTrack(guild)?.data?.imgUrl ?: cat.img!!
 
     fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {
         thumbnail = data.imgUrl ?: cat.img
@@ -194,7 +320,7 @@ object MusicCommands : ICommandList {
                 color = YELLOW
                 title = "Something went wrong somewhere"
                 thumbnail = res.results.first { it is MHSuccess }.data?.imgUrl
-                +"Loaded ${res.loaded} songs"
+                +"Loaded ${res.loaded} songs\n"
                 +"Unable to load ${res.results.size - res.loaded} songs"
             }
             is MHNotLoaded -> replyCat {

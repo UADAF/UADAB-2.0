@@ -2,6 +2,9 @@ package argparser.spec
 
 class RangeArgResult(val from: Int?, val to: Int?) : ArgResult() {
     override val type: String = "range"
+
+    operator fun component1() = from
+    operator fun component2() = to
 }
 
 class RangeArgSpec(name: String) : ArgSpec<RangeArgResult>(name) {

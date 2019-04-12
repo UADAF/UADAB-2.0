@@ -14,7 +14,7 @@ repositories {
     maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://dl.bintray.com/kotlin/ktor") }
 }
-val jdaVersion = "3.8.1_448"
+val jdaVersion = "3.8.3_462"
 val gsonVersion = "2.8.5"
 val ktorVersion = "1.0.1"
 dependencies {

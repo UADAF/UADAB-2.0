@@ -45,7 +45,7 @@ class ArgParser {
             return results
         }
         args.forEach { arg ->
-            if(arg.length > 1 && arg[0] == '-' && arg[1] != '-') {
+            if(arg.matches("-[a-zA-Z0-9]+".toRegex())) {
                 parseMultiflag(arg)
             } else {
                 parseNormal(arg)
