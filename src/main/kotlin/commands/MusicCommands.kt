@@ -12,6 +12,7 @@ import uadamusic.CONTEXT
 import uadamusic.MusicData
 import java.awt.Color
 import java.awt.Color.*
+import music.MusicHandler.data
 
 object MusicCommands : ICommandList {
 
@@ -62,11 +63,14 @@ object MusicCommands : ICommandList {
                                         if (re.length > 1 && re[1] == numbermoji) {
                                             val num = re[0]
                                             if (num in '1'..('0' + data.size)) {
-                                                val r = MusicHandler.load(data[num.toString().toInt() - 1], guild, margs)
+                                                val r =
+                                                    MusicHandler.load(data[num.toString().toInt() - 1], guild, margs)
                                                 handleLoad(r)
                                                 //Use getMessageById to update message, because msg is cached version
-                                                msg.channel.getMessageById(msg.id).complete().reactions.filter(MessageReaction::isSelf).forEach { r ->
-                                                    r.removeReaction().queue()
+                                                msg.channel.getMessageById(msg.id).complete().reactions.filter(
+                                                    MessageReaction::isSelf
+                                                ).forEach { rec ->
+                                                    rec.removeReaction().queue()
                                                 }
 
                                             }
@@ -76,7 +80,7 @@ object MusicCommands : ICommandList {
                                         false
                                     }
                                 }
-                                for(j in 1..data.size) {
+                                for (j in 1..data.size) {
                                     msg.addReaction("$j$numbermoji").queue()
                                 }
                             })
@@ -95,11 +99,56 @@ object MusicCommands : ICommandList {
                 handleLoad(res)
             }
         }
-
+        command("pause") {
+            allowed to assets
+            help = "Put music on pause"
+            action {
+                MusicHandler.pause(guild)
+            }
+        }
+        command("resume") {
+            allowed to assets
+            help = "Resume music"
+            action {
+                MusicHandler.resume(guild)
+            }
+        }
+        command("clear") {
+            allowed to assets
+            help = "Clears playlist"
+            action {
+                MusicHandler.reset(guild)
+            }
+        }
+        command("playlist") {
+            help = "Displays playlist"
+            action {
+                val cur = MusicHandler.currentTrack(guild)
+                val pl = MusicHandler.getPlaylist(guild)
+                if (cur == null) {
+                    replyCat {
+                        color = RED
+                        title = "No playlist"
+                    }
+                } else {
+                    reply {
+                        pattern {
+                            color = GREEN
+                            title = "Playlist"
+                            thumbnail = cur.data.imgUrl ?: cat.img
+                        }
+                        +"1: ${formatData(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
+                        pl.forEachIndexed { i, e ->
+                            +"${i + 2}: ${formatData(e.data)}"
+                        }
+                    }
+                }
+            }
+        }
     }
-    
-    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = replyCat {
-        thumbnail = data.imgUrl
+
+    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {pla
+        thumbnail = data.imgUrl ?: cat.img
         +formatData(data)
         embed()
     }

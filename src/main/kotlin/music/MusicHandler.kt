@@ -16,6 +16,7 @@ import uadamusic.MusicContext
 import uadamusic.MusicData
 import uadamusic.SONG
 import java.lang.IllegalArgumentException
+import java.nio.file.Paths
 import java.util.*
 
 object MusicHandler {
@@ -26,9 +27,14 @@ object MusicHandler {
     lateinit var context: MusicContext
         private set
 
-    fun MusicContext.searchImg(name: String?): String? {
-        return search(name ?: return null)?.getOrNull(0)?.imgUrl
-    }
+    val AudioTrack.data: MusicData
+        get() {
+            return context.search(removeExtension(normalizePath(identifier)))!!.first()
+        }
+
+    fun normalizePath(p: String) = Paths.get(context.name).relativize(Paths.get(p)).toString()
+
+    fun removeExtension(p: String) = p.substring(0, p.lastIndexOf('.'))
 
     val MusicData.imgUrl: String?
         get() {
@@ -42,14 +48,6 @@ object MusicHandler {
 
     val MusicData.isSong: Boolean
         get() = type == SONG
-
-    fun trackImg(track: AudioTrack): String {
-        return context.searchImg(track.identifier?.removePrefix("Music/")) ?: MusicCommands.cat.img!!
-    }
-
-    fun currentTrackImg(g: Guild): String {
-        return trackImg(currentTrack(g) ?: return MusicCommands.cat.img!!)
-    }
 
     init {
         loadContext()
