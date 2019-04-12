@@ -1,6 +1,7 @@
 import cmd.CommandClient
 import com.kizitonwose.time.minutes
 import dsl.embed
+import dsl.sendPaginatedEmbed
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -15,6 +16,7 @@ import net.dv8tion.jda.core.hooks.SubscribeEvent
 import org.jetbrains.exposed.sql.transactions.transaction
 import sources.*
 import users.UADABUser
+import utils.BashUtils
 import java.awt.Color
 
 object EventListener {
@@ -61,11 +63,13 @@ object EventListener {
     @SubscribeEvent
     fun MessageReceivedEvent.msg() {
         onMsg(message)
+        bashCheck(message)
     }
 
     @SubscribeEvent
     fun MessageUpdateEvent.edit() {
         onMsg(message)
+        bashCheck(message)
     }
 
     private fun onMsg(message: Message) {
@@ -80,6 +84,27 @@ object EventListener {
                     }).queue()
                 }
                 else -> {}
+            }
+        }
+    }
+
+    private fun bashCheck(message: Message) {
+        GlobalScope.launch {
+            val matches = """(https?:\/\/)?(bash\.im\/quote\/)(\d+)""".toRegex().find(message.contentRaw) ?: return@launch
+            if (matches.groups.count() != 4) return@launch
+
+            val quote = BashUtils.fetchQuote(message.contentRaw) ?: return@launch
+            val channel = message.textChannel
+            message.delete().queue()
+
+            channel.sendPaginatedEmbed {
+                pattern {
+                    title = "Цитата ${quote.id}"
+                    url = message.contentRaw
+                    thumbnail = "https://bash.im/favicon-180x180.png"
+                    color = Color.white
+                }
+                + quote.content
             }
         }
     }

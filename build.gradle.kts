@@ -31,6 +31,8 @@ dependencies {
     compile("com.github.kizitonwose.time:time:1.0.2")
     compile("com.uadaf:uadamusic:2.5")
     compile("com.sedmelluq:lavaplayer:1.3.12")
+    compile("pl.droidsonroids:jspoon:1.3.2")
+
     testCompile("junit:junit:4.12")
 }
 

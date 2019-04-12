@@ -14,6 +14,7 @@ import net.dv8tion.jda.core.hooks.AnnotatedEventManager
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import pl.droidsonroids.jspoon.Jspoon
 import utils.ConfigUtils
 
 object UADAB {
@@ -29,6 +30,7 @@ object UADAB {
     val log: Logger = LoggerFactory.getLogger("UADAB")
     val parser: JsonParser = JsonParser()
     val http = HttpClient(Apache)
+    val spoon = Jspoon.create()
 
     @JvmStatic
     fun main(args: Array<String>) {
