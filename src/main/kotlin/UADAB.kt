@@ -24,7 +24,7 @@ object UADAB {
     lateinit var bot: JDA
         private set
 
-    val commandClient = CommandClient("sudo")
+    lateinit var commandClient: CommandClient
 
     val log: Logger = LoggerFactory.getLogger("UADAB")
     val parser: JsonParser = JsonParser()
@@ -40,7 +40,7 @@ object UADAB {
             cfg.dbLogin,
             cfg.dbPass
         )
-
+        commandClient = CommandClient(cfg.prefix)
         commandClient.register(SystemCommands, MiscCommands, MusicCommands)
 
         bot = JDABuilder(cfg.token)

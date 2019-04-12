@@ -25,6 +25,8 @@ class Config {
     lateinit var musicMetaUrl: String
         private set
 
+    lateinit var prefix: String
+        private set
 
     @ConfigUtils.ManualConfigProperty
     lateinit var token: String
