@@ -3,7 +3,6 @@ package commands
 import cmd.*
 import dsl.PaginatedEmbedCreator
 import dsl.embed
-import io.ktor.client.call.call
 import music.*
 import users.assets
 import java.lang.IllegalArgumentException
@@ -15,13 +14,17 @@ import java.awt.Color
 import java.awt.Color.*
 import music.MusicHandler.data
 import net.dv8tion.jda.core.entities.Guild
+import sources.MusicSource
+import users.admin_or_interface
+import java.text.SimpleDateFormat
+import java.util.*
 
 object MusicCommands : ICommandList {
 
     override val cat = CommandCategory("Music", Color(0xAFEBF3), "http://52.48.142.75/images/an.png")
 
     const val numbermoji = '\u20e3'
-
+    private val playlistTimeFormat = SimpleDateFormat("HH:mm:ss").apply { timeZone = TimeZone.getTimeZone("UTC") }
     override fun init(): Init<CommandListBuilder> = {
 
         command("play") {
@@ -128,6 +131,9 @@ object MusicCommands : ICommandList {
         command("clear") {
             allowed to assets
             help = "Clears playlist"
+            aliases {
+                +"reset"
+            }
             action {
                 val img = currentImg(guild)
                 MusicHandler.reset(guild)
@@ -149,6 +155,7 @@ object MusicCommands : ICommandList {
                         title = "No playlist"
                     }
                 } else {
+                    var totalTime = cur.duration - cur.position
                     reply {
                         pattern {
                             color = GREEN
@@ -158,7 +165,9 @@ object MusicCommands : ICommandList {
                         +"1: ${formatData(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
                         pl.forEachIndexed { i, e ->
                             +"${i + 2}: ${formatData(e.data)}\n"
+                            totalTime += e.duration
                         }
+                        +"\nTotal time: ${playlistTimeFormat.format(Date(totalTime))}"
                     }
                 }
             }
@@ -268,7 +277,17 @@ object MusicCommands : ICommandList {
                 }
             }
         }
-
+        command("reload") {
+            allowed to admin_or_interface
+            help = "Reload music context"
+            action {
+                MusicSource.reload()
+                replyCat {
+                    color = GREEN
+                    title = "Reloaded"
+                }
+            }
+        }
     }
 
     fun currentImg(guild: Guild): String = MusicHandler.currentTrack(guild)?.data?.imgUrl ?: cat.img!!
