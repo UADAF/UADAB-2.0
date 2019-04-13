@@ -133,7 +133,8 @@ object MusicHandler {
         var count: Int = 1,
         var noRepeat: Boolean = true,
         var all: Boolean = false,
-        var first: Boolean = false
+        var first: Boolean = false,
+        var next: Boolean = false
     )
 
     fun loadDirect(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
@@ -153,10 +154,10 @@ object MusicHandler {
                 if (args.noRepeat && (player.scheduler.hasTack(track) || player.playingTrack?.identifier == track.identifier)) {
                     ret = MHAlreadyInQueue(cleared, data, track)
                 } else {
-                    if (args.first) {
-                        player.scheduler.playNow(track)
-                    } else {
-                        player.scheduler.queue(track)
+                    when {
+                        args.first -> player.scheduler.playNow(track)
+                        args.next -> player.scheduler.playNext(track)
+                        else -> player.scheduler.queue(track)
                     }
                     ret = MHSuccess(cleared, data, track)
                 }

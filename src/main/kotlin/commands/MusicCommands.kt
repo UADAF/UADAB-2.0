@@ -33,11 +33,24 @@ object MusicCommands : ICommandList {
             val all by parser.flag("all", shortname = 'a')
             val repeat by parser.flag("repeat", shortname = 'r')
             val first by parser.flag("first", shortname = 'f')
+            val next by parser.flag("next", shortname = 'n')
             val largs by parser.leftoverDelegate()
             action {
                 val (count, namel) = extractCount(largs)
                 val name = namel.joinToString(" ")
-                val margs = MusicHandler.MusicArgs(count, !repeat.present, all.present, first.present)
+                if(first.present && next.present) {
+                    replyCat {
+                        color = RED
+                        title = "Only one of 'first' or 'next' can be specified"
+                    }
+                }
+                val margs = MusicHandler.MusicArgs(
+                    count,
+                    !(repeat.present || (all.present && count > 1)),
+                    all.present,
+                    first.present,
+                    next.present
+                )
                 val res = if (name.isEmpty()) {
                     MusicHandler.load(MusicHandler.context, guild, margs)
                 } else {
@@ -164,7 +177,11 @@ object MusicCommands : ICommandList {
                         }
                         +"1: ${formatData(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
                         pl.forEachIndexed { i, e ->
-                            +"${i + 2}: ${formatData(e.data)}\n"
+                            +"${i + 2}: ${formatData(e.data)}"
+                            if(e.position != 0L) {
+                                +" ${(e.position * 100) / e.duration}%"
+                            }
+                            +"\n"
                             totalTime += e.duration
                         }
                         +"\nTotal time: ${playlistTimeFormat.format(Date(totalTime))}"
@@ -186,7 +203,7 @@ object MusicCommands : ICommandList {
             }
 
             action {
-                if(MusicHandler.playlistSize(guild) == 0) {
+                if (MusicHandler.playlistSize(guild) == 0) {
                     replyCat {
                         color = RED
                         title = "Nothing playing"
@@ -194,14 +211,14 @@ object MusicCommands : ICommandList {
                     return@action
                 }
                 var (start, end) = skipRange
-                if(start == null && end == null) {
-                    if(skipPlain.isEmpty()) {
+                if (start == null && end == null) {
+                    if (skipPlain.isEmpty()) {
                         skip(0)
                     } else {
                         var n = skipPlain.joinToString("").toInt()
                         if (n < 0) {
                             n += MusicHandler.playlistSize(guild) + 1
-                            if(n < 0) {
+                            if (n < 0) {
                                 reply {
                                     color = RED
                                     title = "Not enough songs in playlist"
@@ -234,9 +251,9 @@ object MusicCommands : ICommandList {
                     //start is inclusive, end is exclusive
                     start--
                     end--
-                    if(start < 0) {
+                    if (start < 0) {
                         start += MusicHandler.playlistSize(guild) + 1
-                        if(start < 0) {
+                        if (start < 0) {
                             replyCat {
                                 color = RED
                                 title = "Invalid range"
@@ -244,9 +261,9 @@ object MusicCommands : ICommandList {
                             return@action
                         }
                     }
-                    if(end < 0) {
+                    if (end < 0) {
                         end += MusicHandler.playlistSize(guild) + 1
-                        if(end < 0) {
+                        if (end < 0) {
                             replyCat {
                                 color = RED
                                 title = "Invalid range"

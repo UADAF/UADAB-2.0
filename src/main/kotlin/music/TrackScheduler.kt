@@ -24,8 +24,14 @@ class TrackScheduler(private val player: AudioPlayer) : AudioEventAdapter() {
     }
 
     fun playNow(track: AudioTrack) {
-        player.playingTrack?.let(queue::addFirst)
+        if(player.playingTrack != null) {
+            queue.addFirst(player.playingTrack.makeClone().apply { position = player.playingTrack.position })
+        }
         player.startTrack(track, false)
+    }
+
+    fun playNext(track: AudioTrack) {
+        queue.addFirst(track)
     }
 
     /**
