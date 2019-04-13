@@ -10,7 +10,8 @@ object GameListSource : BasicExternalSource<GameList>() {
 
 
     override suspend fun load(): GameList = File("idlePhrases.txt").useLines { f ->
-        f.map { it.split(":", limit = 2) }
+        f.filter { it[0] != '#' }
+            .map { it.split(":", limit = 2) }
             .map { (type, text) -> Game.of(Game.GameType.valueOf(type), text) }
             .toList()
     }
