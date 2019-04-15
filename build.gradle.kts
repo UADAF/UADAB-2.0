@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.3.0"
+    id("com.github.johnrengelman.shadow") version "4.0.4"
 }
 
 group = "com.gt22"
@@ -27,13 +28,19 @@ dependencies {
     compile("io.ktor:ktor-client-core:$ktorVersion")
     compile("io.ktor:ktor-client-apache:$ktorVersion")
     compile("org.jetbrains.exposed:exposed:0.10.4")
-    compile("mysql:mysql-connector-java:5.1.1")
+    compile("mysql:mysql-connector-java:6.0.6")
     compile("com.github.kizitonwose.time:time:1.0.2")
     compile("com.uadaf:uadamusic:2.5")
     compile("com.sedmelluq:lavaplayer:1.3.12")
     compile("pl.droidsonroids:jspoon:1.3.2")
 
     testCompile("junit:junit:4.12")
+}
+
+val jar by tasks.getting(Jar::class) {
+    manifest {
+        attributes["Main-Class"] = "UADAB"
+    }
 }
 
 tasks.withType<KotlinCompile> {
