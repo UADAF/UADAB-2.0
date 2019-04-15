@@ -12,9 +12,7 @@ import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.core.entities.Guild
 import sources.MusicSource
 import sources.get
-import uadamusic.MusicContext
-import uadamusic.MusicData
-import uadamusic.SONG
+import uadamusic.*
 import java.lang.IllegalArgumentException
 import java.nio.file.Paths
 import java.util.*
@@ -192,6 +190,34 @@ object MusicHandler {
 
     fun <T> MutableList<T>.removeLast() = removeAt(lastIndex)
 
+    val MusicDataType.level
+        get() = when(this) {
+            CONTEXT -> 0
+            GROUP -> 1
+            AUTHOR -> 2
+            ALBUM -> 3
+            SONG -> 4
+            else -> 5
+        }
+
+    fun loadAll(data: MusicData, guild: Guild, args: MusicArgs): List<MusicHandlerRet> {
+        if(data.type == SONG) {
+
+            return listOf(load(data, guild, args))
+        }
+        val ret = mutableListOf<MusicHandlerRet>()
+        data.children?.sortedWith(Comparator { a, b ->
+            if(a.type.level != b.type.level) {
+                a.type.level.compareTo(b.type.level)
+            } else {
+                a.name.compareTo(b.name)
+            }
+        })?.forEach {
+            ret.addAll(loadAll(it, guild, args))
+        }
+        return ret
+    }
+
     fun load(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
         if (data.type == SONG) {
             return loadDirect(data, guild, args)
@@ -203,7 +229,7 @@ object MusicHandler {
         val rets = mutableListOf<MusicHandlerRet>()
         if (args.all) {
             for (i in 0 until args.count) {
-                validSongs.forEach { rets.add(load(it, guild, args)) }
+                rets.addAll(loadAll(data, guild, args))
             }
         } else {
             val shuffledSongs = validSongs.shuffled().toMutableList()
@@ -223,7 +249,7 @@ object MusicHandler {
         }
         val successCount = rets.count { r -> r is MHSuccess }
         return when {
-            successCount == args.count -> MHFullyLoaded(rets)
+            successCount == rets.size -> MHFullyLoaded(rets)
             successCount == rets.size - 1 && rets.last() is MHNoMoreTracks -> MHAllLoaded(rets)
             successCount > 0 -> MHPartiallyLoaded(rets, successCount)
             else -> MHNotLoaded()
