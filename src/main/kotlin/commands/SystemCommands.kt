@@ -6,6 +6,10 @@ import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
 import net.dv8tion.jda.core.Permission
+import users.Classification
+import users.Classification.Companion.ADMIN
+import users.Classification.Companion.ANALOG_INTERFACE
+import users.admin_or_interface
 import users.assets
 import users.everyone
 import java.awt.Color
@@ -152,6 +156,20 @@ object SystemCommands : ICommandList {
             allowed to everyone
             hidden = true
             action { reply("Фыфырифтофыфыри!") }
+        }
+        command("shutdown") {
+            allowed to admin_or_interface
+            action {
+                replyCat {
+                    +"Goodbye"
+                    val cls = author.classification
+                    when(cls) {
+                        ADMIN -> +", Admin"
+                        ANALOG_INTERFACE -> +", Interface"
+                        else -> +"... how did you just do it???"
+                    }
+                }
+            }
         }
     }
 
