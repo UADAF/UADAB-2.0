@@ -16,6 +16,7 @@ import music.MusicHandler.data
 import net.dv8tion.jda.core.entities.Guild
 import sources.MusicSource
 import users.admin_or_interface
+import utils.extractCount
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,7 +47,7 @@ object MusicCommands : ICommandList {
                 }
                 val margs = MusicHandler.MusicArgs(
                     count,
-                    !(repeat.present || (all.present && count > 1)),
+                    !(repeat.present || (all.present && count > 1) || name.isNotEmpty()),
                     all.present,
                     first.present,
                     next.present
@@ -323,6 +324,7 @@ object MusicCommands : ICommandList {
             }
             is MHAlreadyInQueue -> replyData(res.data) {
                 color = YELLOW
+                title = "This song is already in queue"
             }
             is MHNotFound -> replyData(res.data) {
                 color = RED
@@ -363,24 +365,6 @@ object MusicCommands : ICommandList {
                 color = RED
                 title = "Everything went wrong everywhere"
                 +"Unable to load anything..."
-            }
-        }
-    }
-
-    fun extractCount(a: List<String>): Pair<Int, List<String>> {
-        val countPos = a.indexOf("*")
-        if (a.lastIndexOf("*") != countPos) {
-            throw IllegalArgumentException("'*' cannot be specified multiple times")
-        }
-        return if (countPos < 0) {
-            1 to a
-        } else {
-            if (countPos < a.lastIndex) {
-                val count =
-                    a[countPos + 1].toIntOrNull() ?: throw IllegalArgumentException("'*' must be followed by a number")
-                count to a.filterIndexed { i, _ -> i !in countPos..countPos + 1 }
-            } else {
-                throw IllegalArgumentException("'*' must be followed by a number")
             }
         }
     }

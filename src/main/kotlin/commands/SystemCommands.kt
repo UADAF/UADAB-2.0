@@ -5,6 +5,7 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
+import dsl.embed
 import net.dv8tion.jda.core.Permission
 import users.Classification
 import users.Classification.Companion.ADMIN
@@ -13,6 +14,7 @@ import users.admin_or_interface
 import users.assets
 import users.everyone
 import java.awt.Color
+import java.awt.Color.GREEN
 
 object SystemCommands : ICommandList {
 
@@ -160,7 +162,9 @@ object SystemCommands : ICommandList {
         command("shutdown") {
             allowed to admin_or_interface
             action {
-                replyCat {
+                reply(embed {
+                    title = "Shutting down..."
+                    color = GREEN
                     +"Goodbye"
                     val cls = author.classification
                     when(cls) {
@@ -168,7 +172,9 @@ object SystemCommands : ICommandList {
                         ANALOG_INTERFACE -> +", Interface"
                         else -> +"... how did you just do it???"
                     }
-                }
+                }, success = {
+                    System.exit(0)
+                })
             }
         }
     }

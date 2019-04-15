@@ -174,6 +174,9 @@ object MusicHandler {
     fun getVariants(name: String) = context.search(name)
 
     private fun MusicData.getSongs(): List<MusicData> {
+        if(isSong) {
+            return listOf(this)
+        }
         val queue = LinkedList<MusicData>()
         val ret = mutableListOf<MusicData>()
         queue.add(this)
@@ -219,9 +222,6 @@ object MusicHandler {
     }
 
     fun load(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
-        if (data.type == SONG) {
-            return loadDirect(data, guild, args)
-        }
         val validSongs = data.getSongs()
         if (validSongs.isEmpty()) {
             return MHNotFound(data.path, data)
@@ -231,15 +231,20 @@ object MusicHandler {
             for (i in 0 until args.count) {
                 rets.addAll(loadAll(data, guild, args))
             }
+        } else if (validSongs.size == 1) {
+            val s = validSongs.first()
+            for (i in 0 until args.count) {
+                rets.add(loadDirect(s, guild, args))
+            }
         } else {
             val shuffledSongs = validSongs.shuffled().toMutableList()
             for (i in 0 until args.count) {
                 rets.add(
-                    if (validSongs.isEmpty()) {
+                    if (shuffledSongs.isEmpty()) {
                         MHNoMoreTracks()
                         break
                     } else {
-                        load(shuffledSongs.removeLast(), guild, args)
+                        loadDirect(shuffledSongs.removeLast(), guild, args)
                     }
                 )
             }
