@@ -205,7 +205,6 @@ object MusicHandler {
 
     fun loadAll(data: MusicData, guild: Guild, args: MusicArgs): List<MusicHandlerRet> {
         if(data.type == SONG) {
-
             return listOf(load(data, guild, args))
         }
         val ret = mutableListOf<MusicHandlerRet>()
@@ -227,14 +226,14 @@ object MusicHandler {
             return MHNotFound(data.path, data)
         }
         val rets = mutableListOf<MusicHandlerRet>()
-        if (args.all) {
-            for (i in 0 until args.count) {
-                rets.addAll(loadAll(data, guild, args))
-            }
-        } else if (validSongs.size == 1) {
+        if (validSongs.size == 1) {
             val s = validSongs.first()
             for (i in 0 until args.count) {
                 rets.add(loadDirect(s, guild, args))
+            }
+        } else if (args.all) {
+            for (i in 0 until args.count) {
+                rets.addAll(loadAll(data, guild, args))
             }
         } else {
             val shuffledSongs = validSongs.shuffled().toMutableList()
