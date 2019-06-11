@@ -45,6 +45,12 @@ open class BaseEmbedCreater {
             builder.setTitle(title, value)
         }
 
+    var image: String? = null
+        set(value) {
+            field = value
+            builder.setImage(value)
+        }
+
     val append by lazy { FieldHolder(this, false) }
     val inline by lazy { FieldHolder(this, true) }
 

@@ -59,8 +59,11 @@ class ArgParser {
 
     inline fun with(args: List<String>, body: (Map<String, ArgResult>) -> Unit) {
         val res = parse(args)
-        body(res)
-        reset()
+        try {
+            body(res)
+        } finally {
+            reset()
+        }
     }
 
     fun reset() {

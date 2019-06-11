@@ -10,6 +10,8 @@ object ExternalSourceRegistry {
         register(HttpCodeSource)
         register(XkcdColorSource)
         register(GameListSource)
+        register(MusicSource)
+        register(QuoterSource)
     }
 
     fun register(s: IExternalSource<*>) {

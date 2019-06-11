@@ -5,10 +5,16 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
+import io.ktor.http.HttpStatusCode
+import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.MessageEmbed
+import quoter.DisplayType
 import sources.HttpCodeSource
+import sources.QuoterSource
 import sources.get
 import utils.extractCount
 import java.awt.Color
+import java.awt.Color.GREEN
 import java.awt.Color.RED
 
 object MiscCommands : ICommandList {
@@ -69,6 +75,7 @@ object MiscCommands : ICommandList {
             help = "Add or get quote"
             val quoteRange by parser.range("quoteRange")
             val all by parser.flag("all", shortname = 'a')
+            val repo by parser.value("repo")
             val arguments by parser.leftoverDelegate()
             action {
                 val (count, leftover) = extractCount(arguments)
@@ -88,17 +95,50 @@ object MiscCommands : ICommandList {
                     }
                     return@action
                 }
-                if(leftover.isNotEmpty()) {
+                val q = QuoterSource.get()
+                val r = repo.value ?: q.defaultRepo
+                if(leftover.size > 1) {
                     if(leftover[0] == "add") {
                         if (all.present || quoteRange.isNotEmpty) {
                             replyCat {
                                 title = "Invalid args"
                                 color = RED
-                                +"--all and range are not allowed when adding, enclode them in ' or \" if they are part of the quote"
+                                +"--all and range are not allowed when adding, enclose them in ' or \" if they are part of the quote"
                             }
                             return@action
                         }
-                        TODO("Add quote")
+                        if (leftover.size > 2) {
+                            val qauthor = leftover[1]
+                            val quote = leftover.subList(2, leftover.size).joinToString(" ")
+
+                            var attachments: List<String>? = null
+                            if(message.attachments.isNotEmpty()) {
+                                val attch = message.attachments[0]
+                                if(attch.isImage) {
+                                    attachments = listOf(attch.url)
+                                }
+                            }
+                            val resp = q.add(author.discord.name, qauthor, quote, if(quote.count { it == '\n' } > 1) DisplayType.DIALOG else DisplayType.TEXT, attachments, r)
+                            if(resp.response.status != HttpStatusCode.OK) {
+                                replyCat {
+                                    title = "Something went wrong"
+                                    color = RED
+                                    +resp.response.status.toString()
+                                }
+                            } else {
+                                replyCat {
+                                    title = "Added, $qauthor:"
+                                    color = GREEN
+                                    +quote
+                                }
+                            }
+                        } else {
+                            replyCat {
+                                title = "No quote specified"
+                                color = RED
+                                +"First word is author"
+                            }
+                        }
                     } else {
                         replyCat {
                             title = "Invalid args"
@@ -107,10 +147,60 @@ object MiscCommands : ICommandList {
                         }
                     }
                 } else {
-                    when {
-                        all.present -> TODO("Display all quotes")
-                        quoteRange.isNotEmpty -> TODO("Display quote range")
-                        else -> TODO("Display random quotes")
+                    val quotes = if (leftover.isNotEmpty()) {
+                        val id = leftover[0].toIntOrNull()
+                        if (id == null) {
+                            replyCat {
+                                title = "Invalid id"
+                                color = RED
+                                +"Unknown id $id"
+                            }
+                            return@action
+                        }
+                        listOf(q.byId(id, r))
+                    } else {
+                        when {
+                            all.present -> q.all(r)
+                            quoteRange.isNotEmpty -> q.byRange(quoteRange.from ?: 1, quoteRange.to ?: q.total(r), r)
+                            else -> q.random(count, r)
+                        }
+                    }.filterNotNull()
+                    if (quotes.isEmpty()) {
+                        replyCat {
+                            title = "No quotes found"
+                            color = RED
+                        }
+                    } else {
+                        replyCat {
+                            quotes.forEachIndexed { i, quote ->
+                                with(quote) {
+                                    if (attachments.isNotEmpty() || content.length > 1024) {
+                                        if (builder.length() != 0 || builder.fields.size != 0) {
+                                            breakPage()
+                                        }
+
+                                    }
+                                    if (content.length > 1024) {
+                                        +content
+                                    } else {
+                                        append field "#$id ${authors.joinToString(", ")}:" to content
+                                    }
+                                    if (attachments.isNotEmpty()) {
+                                        try {
+                                            if (attachments[0].matches("^https?://.+$".toRegex())) {
+                                                image = attachments[0]
+                                                if (i != quotes.lastIndex) {
+                                                    breakPage()
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            println(attachments)
+                                            throw e
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -25,6 +25,15 @@ class Config {
     lateinit var musicMetaUrl: String
         private set
 
+    lateinit var quoterUrl: String
+        private set
+
+    lateinit var quoterAccessKey: String
+        private set
+
+    lateinit var quoterDefaultRepo: String
+        private set
+
     lateinit var prefix: String
         private set
 
