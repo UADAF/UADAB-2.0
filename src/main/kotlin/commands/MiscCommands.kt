@@ -19,7 +19,8 @@ import java.awt.Color.RED
 
 object MiscCommands : ICommandList {
 
-    override val cat: CommandCategory = CommandCategory("Misc", Color(0x95a3a6), "http://52.48.142.75/images/math_compass.png")
+    override val cat: CommandCategory =
+        CommandCategory("Misc", Color(0x95a3a6), "http://52.48.142.75/images/math_compass.png")
 
     override fun init(): Init<CommandListBuilder> = {
         command("http") {
@@ -39,7 +40,7 @@ object MiscCommands : ICommandList {
 
                     if (intValue != null && dataSet.containsKey(intValue)) {
                         codes.add(dataSet.getValue(intValue))
-                    } else  {
+                    } else {
                         invalids.add(it)
                     }
                 }
@@ -79,7 +80,7 @@ object MiscCommands : ICommandList {
             val arguments by parser.leftoverDelegate()
             action {
                 val (count, leftover) = extractCount(arguments)
-                if(count != 1 && (leftover.isNotEmpty() || quoteRange.isNotEmpty || all.present)) {
+                if (count != 1 && (leftover.isNotEmpty() || quoteRange.isNotEmpty || all.present)) {
                     replyCat {
                         title = "Invalid args"
                         color = RED
@@ -87,7 +88,7 @@ object MiscCommands : ICommandList {
                     }
                     return@action
                 }
-                if(all.present && quoteRange.isNotEmpty) {
+                if (all.present && quoteRange.isNotEmpty) {
                     replyCat {
                         title = "Invalid args"
                         color = RED
@@ -97,8 +98,8 @@ object MiscCommands : ICommandList {
                 }
                 val q = QuoterSource.get()
                 val r = repo.value ?: q.defaultRepo
-                if(leftover.size > 1) {
-                    if(leftover[0] == "add") {
+                if (leftover.size > 1) {
+                    if (leftover[0] == "add") {
                         if (all.present || quoteRange.isNotEmpty) {
                             replyCat {
                                 title = "Invalid args"
@@ -112,14 +113,20 @@ object MiscCommands : ICommandList {
                             val quote = leftover.subList(2, leftover.size).joinToString(" ")
 
                             var attachments: List<String>? = null
-                            if(message.attachments.isNotEmpty()) {
+                            if (message.attachments.isNotEmpty()) {
                                 val attch = message.attachments[0]
-                                if(attch.isImage) {
+                                if (attch.isImage) {
                                     attachments = listOf(attch.url)
                                 }
                             }
-                            val resp = q.add(author.discord.name, qauthor, quote, if(quote.count { it == '\n' } > 1) DisplayType.DIALOG else DisplayType.TEXT, attachments, r)
-                            if(resp.response.status != HttpStatusCode.OK) {
+                            val resp = q.add(
+                                author.discord.name,
+                                qauthor,
+                                quote,
+                                if (quote.count { it == '\n' } > 1) DisplayType.DIALOG else DisplayType.TEXT,
+                                attachments,
+                                r)
+                            if (resp.response.status != HttpStatusCode.OK) {
                                 replyCat {
                                     title = "Something went wrong"
                                     color = RED
@@ -187,10 +194,12 @@ object MiscCommands : ICommandList {
                                     }
                                     if (attachments.isNotEmpty()) {
                                         try {
-                                            if (attachments[0].matches("^https?://.+$".toRegex())) {
-                                                image = attachments[0]
-                                                if (i != quotes.lastIndex) {
-                                                    breakPage()
+                                            attachments.forEachIndexed { j, a ->
+                                                if (a.matches("^https?://.+$".toRegex())) {
+                                                    image = a
+                                                    if (i != quotes.lastIndex || j != attachments.lastIndex) {
+                                                        breakPage()
+                                                    }
                                                 }
                                             }
                                         } catch (e: Exception) {
