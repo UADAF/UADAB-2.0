@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.0"
+    kotlin("jvm") version "1.3.71"
     id("com.github.johnrengelman.shadow") version "4.0.4"
 }
 
@@ -45,4 +45,10 @@ val jar by tasks.getting(Jar::class) {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+val compileKotlin: KotlinCompile by tasks
+
+compileKotlin.kotlinOptions {
+    languageVersion = "1.3"
+    freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
 }

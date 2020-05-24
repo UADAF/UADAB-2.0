@@ -1,6 +1,7 @@
 import cmd.CommandClient
 import com.kizitonwose.time.minutes
 import dsl.embed
+import dsl.sendEmbedWithAttachments
 import dsl.sendPaginatedEmbed
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -48,12 +49,12 @@ object EventListener {
 
     fun GuildMemberJoinEvent.onJoin() {
         UADABUser.fromDiscord(user).let { u ->
-            guild.defaultChannel?.sendMessage(embed {
+            guild.defaultChannel?.sendEmbedWithAttachments(embed {
                 title = "Info about ${user.name}"
                 thumbnail = user.effectiveAvatarUrl
                 color = u.classification.cornerColor
                 inline field "Classification" to u.classification.name
-                inline field "SSN" to u.ssn.getSSNString(redacted = false)
+                inline field "SSN" to u.ssn.ssnString
                 append field "Discord ID" to user.id
                 inline field "Online status" to member.onlineStatus.key.replace("dnd", "do not disturb").capitalize()
             })
@@ -77,7 +78,7 @@ object EventListener {
             val (res, v) = UADAB.commandClient.handle(message)
             when(res) {
                 CommandClient.ExecutionResult.ERROR -> {
-                    message.channel.sendMessage(embed {
+                    message.channel.sendEmbedWithAttachments(embed {
                         color = Color.RED
                         title = "Something went wrong"
                         +v

@@ -1,6 +1,8 @@
 package cmd
 
+import dsl.Attachments
 import dsl.PaginatedEmbedCreator
+import dsl.sendEmbedWithAttachments
 import dsl.sendPaginatedEmbed
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.Message
@@ -27,9 +29,9 @@ class CommandContext(val message: Message, val args: List<String>) {
               success: Success<Message>? = null, failure: Failure? = null)
             = message.channel.sendMessage(msg).queue(success, failure)
 
-    fun reply(msg: MessageEmbed,
+    fun reply(msg: Pair<MessageEmbed, Attachments>,
               success: Success<Message>? = null, failure: Failure? = null)
-            = message.channel.sendMessage(msg).queue(success, failure)
+            = message.channel.sendEmbedWithAttachments(msg).queue(success, failure)
 
     fun reply(file: File, fileName: String? = file.name, msg: Message? = null,
               success: Success<Message>?, failure: Failure?)

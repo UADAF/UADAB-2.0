@@ -23,15 +23,15 @@ data class Classification(val name: String, val cornerColor: Color, val barColor
 
         operator fun get(s: String) = classes[s.toLowerCase()] ?: throw ClassificationNotFoundException(s)
 
-        val IRRELEVANT = Classification("Irrelevant", poiColors["white"]!!, poiColors["white"]!!)
-        val ASSET = Classification("Asset", poiColors["yellow"]!!, poiColors["yellow"]!!)
-        val ANALOG_INTERFACE = Classification("Analog Interface", poiColors["yellow"]!!, poiColors["black"]!!)
-        val IRRELEVANT_THREAT = Classification("Threat", poiColors["red"]!!, poiColors["white"]!!)
-        val RELEVANT_THREAT = Classification("Relevant Threat", poiColors["red"]!!, poiColors["white"]!!)
-        val RELEVANT_ONE = Classification("Relevant One", poiColors["white"]!!, poiColors["blue"]!!)
-        val CATALYST = Classification("Catalyst", poiColors["blue"]!!, poiColors["blue"]!!)
-        val ADMIN = Classification("Admin", poiColors["yellow"]!!, poiColors["yellow"]!!)
-        val SYSTEM = Classification("System", poiColors["yellow"]!!, poiColors["blue"]!!)
+        val IRRELEVANT = Classification("Irrelevant", poiColors.getValue("white"), poiColors.getValue("white"))
+        val ASSET = Classification("Asset", poiColors.getValue("yellow"), poiColors.getValue("yellow"))
+        val ANALOG_INTERFACE = Classification("Analog Interface", poiColors.getValue("yellow"), poiColors.getValue("black"))
+        val IRRELEVANT_THREAT = Classification("Threat", poiColors.getValue("red"), poiColors.getValue("white"))
+        val RELEVANT_THREAT = Classification("Relevant Threat", poiColors.getValue("red"), poiColors.getValue("white"))
+        val RELEVANT_ONE = Classification("Relevant One", poiColors.getValue("white"), poiColors.getValue("blue"))
+        val CATALYST = Classification("Catalyst", poiColors.getValue("blue"), poiColors.getValue("blue"))
+        val ADMIN = Classification("Admin", poiColors.getValue("yellow"), poiColors.getValue("yellow"))
+        val SYSTEM = Classification("System", poiColors.getValue("yellow"), poiColors.getValue("blue"))
     }
 }
 

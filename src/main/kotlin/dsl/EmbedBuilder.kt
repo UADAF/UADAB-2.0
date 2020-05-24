@@ -3,12 +3,15 @@ package dsl
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
 import java.awt.Color
+import java.io.*
 import java.time.temporal.TemporalAccessor
 
 typealias Init<T> = T.() -> Unit
 
 @DslMarker
 annotation class EmbedDsl
+
+typealias Attachments = Map<String, InputStream>
 
 @EmbedDsl
 open class BaseEmbedCreater {
@@ -51,8 +54,11 @@ open class BaseEmbedCreater {
             builder.setImage(value)
         }
 
+    var attachments: MutableMap<String, InputStream> = mutableMapOf()
+
     val append by lazy { FieldHolder(this, false) }
     val inline by lazy { FieldHolder(this, true) }
+
 
     open fun text(s: String) {
         builder.appendDescription(s)
@@ -76,6 +82,18 @@ open class BaseEmbedCreater {
 
     open fun footer(init: Init<FooterBuilder>) {
         setElement(::FooterBuilder, init)
+    }
+
+    open infix fun String.attach(stream: InputStream) {
+        attachments[this] = stream
+    }
+
+    open infix fun String.attach(stream: File) {
+        attachments[this] = FileInputStream(stream)
+    }
+
+    open infix fun String.attach(stream: ByteArray) {
+        attachments[this] = ByteArrayInputStream(stream)
     }
 
     private inline fun <T : ElementBuilder> setElement(eBuilder: (EmbedBuilder) -> T, init: Init<T>) {
@@ -158,8 +176,8 @@ class AuthorBuilder(private val builder: EmbedBuilder) : ElementBuilder {
 
 }
 
-inline fun embed(init: Init<BaseEmbedCreater>): MessageEmbed {
+inline fun embed(init: Init<BaseEmbedCreater>): Pair<MessageEmbed, Attachments> {
     val e = BaseEmbedCreater()
     e.init()
-    return e.builder.build()
+    return e.builder.build() to e.attachments.toMap()
 }

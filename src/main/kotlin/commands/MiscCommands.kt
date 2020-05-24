@@ -5,6 +5,7 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import cmd.Init
+import getters.Getters
 import io.ktor.http.HttpStatusCode
 import net.dv8tion.jda.core.EmbedBuilder
 import net.dv8tion.jda.core.entities.MessageEmbed
@@ -12,10 +13,14 @@ import quoter.DisplayType
 import sources.HttpCodeSource
 import sources.QuoterSource
 import sources.get
+import users.UADABUser
 import utils.extractCount
+import utils.getters.Wrapper
 import java.awt.Color
-import java.awt.Color.GREEN
-import java.awt.Color.RED
+import utils.getters.Wrapper.WrapperState.*
+import java.awt.Color.*
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 object MiscCommands : ICommandList {
 
@@ -208,6 +213,51 @@ object MiscCommands : ICommandList {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        command("monitor") {
+            help = "Can you hear me?"
+            aliases { +"mon" }
+            val nameArg by parser.plain("user")
+            val leftover by parser.leftoverDelegate()
+            action {
+                val name = nameArg.value ?: return@action replyCat {
+                    title = "Invalid args"
+                    color = RED
+                    +"No user specified"
+                }
+                val wuser = Getters.getUser(name)
+                when(wuser.state) {
+                    NONE -> return@action replyCat {
+                        title = "No users found"
+                        color = RED
+                        +"$name matched no used"
+                    }
+                    MULTI -> return@action replyCat {
+                        title = "NOT YET IMPLEMENTED"
+                        color = YELLOW
+                    }
+                    SINGLE -> {
+                        val user = wuser.getSingle()
+                        val boxedImage = user.getBoxedImageAsync()
+                        boxedImage.invokeOnCompletion {
+                            if(it != null) {
+                                replyCat {
+                                    title = "Unable to monitor"
+                                    +"Something went wrong with boxing:\n"
+                                    +it.toString()
+                                }
+                                return@invokeOnCompletion
+                            }
+                            val imageData = ByteArrayOutputStream().apply { ImageIO.write(boxedImage.getCompleted(), "png", this) }.toByteArray()
+                            replyCat {
+                                title = "Info about ${user.name}"
+                                thumbnail = "attachment://boxed_avatar.png"
+                                "boxed_avatar.png" attach imageData
                             }
                         }
                     }

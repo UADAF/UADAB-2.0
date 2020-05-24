@@ -6,8 +6,8 @@ import kotlin.random.nextInt
 
 class SSN internal constructor(val intVal: Int) {
 
-    fun getSSNString(redacted: Boolean): String {
-        val ssns = Integer.toString(this.intVal)
+    private fun getSSNString(redacted: Boolean): String {
+        val ssns = intVal.toString()
         val zeros = 9 - ssns.length
         val ssn = CharArray(9) { i -> if (i < zeros) '0' else ssns[i - zeros]}
         return if (redacted) {
@@ -17,7 +17,10 @@ class SSN internal constructor(val intVal: Int) {
         }
     }
 
-    override fun toString() = getSSNString(false)
+    val ssnString by lazy { getSSNString(false) }
+    val redactedSSNString by lazy { getSSNString(true) }
+
+    override fun toString() = ssnString
 
     companion object {
         internal fun randomSSN() = SSN(Random.nextInt(0..999_99_9999))
