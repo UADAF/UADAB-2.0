@@ -49,7 +49,7 @@ class PaginatedEmbedCreator : BaseEmbedCreater() {
     }
 
     fun finish(): List<MessageEmbed> {
-        if (!builder.isEmpty && builder.build() != pattern.builder.build()) {
+        if (!builder.isEmpty && (!pattern.builder.isEmpty && builder.build() != pattern.builder.build())) {
             breakPage()
         }
         if(result.size == 1) {
