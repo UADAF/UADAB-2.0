@@ -257,6 +257,7 @@ object MiscCommands : ICommandList {
                             replyCat {
                                 title = "Info about ${user.name}"
                                 thumbnail = "attachment://boxed_avatar.png"
+                                append field "Classification" to user.classification.name
                                 "boxed_avatar.png" attach imageData
                             }
                         }

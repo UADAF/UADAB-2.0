@@ -13,6 +13,7 @@ import uadamusic.MusicData
 import java.awt.Color
 import java.awt.Color.*
 import music.MusicHandler.data
+import net.dv8tion.jda.core.entities.Emote
 import net.dv8tion.jda.core.entities.Guild
 import sources.MusicSource
 import users.admin_or_interface
@@ -117,6 +118,7 @@ object MusicCommands : ICommandList {
                 }
                 handleLoad(res)
             }
+            onDenied { musicDeny() }
         }
         command("pause") {
             allowed to assets
@@ -129,6 +131,7 @@ object MusicCommands : ICommandList {
                     thumbnail = currentImg(guild)
                 }
             }
+            onDenied { musicDeny() }
         }
         command("resume") {
             allowed to assets
@@ -141,6 +144,7 @@ object MusicCommands : ICommandList {
                     thumbnail = currentImg(guild)
                 }
             }
+            onDenied { musicDeny() }
         }
         command("clear") {
             allowed to assets
@@ -157,6 +161,7 @@ object MusicCommands : ICommandList {
                     thumbnail = img
                 }
             }
+            onDenied { musicDeny() }
         }
         command("playlist") {
             help = "Displays playlist"
@@ -189,6 +194,7 @@ object MusicCommands : ICommandList {
                     }
                 }
             }
+            onDenied { musicDeny() }
         }
         command("skip") {
             allowed to assets
@@ -294,6 +300,7 @@ object MusicCommands : ICommandList {
                     }
                 }
             }
+            onDenied { musicDeny() }
         }
         command("reload") {
             allowed to admin_or_interface
@@ -305,6 +312,15 @@ object MusicCommands : ICommandList {
                     title = "Reloaded"
                 }
             }
+            onDenied { musicDeny() }
+        }
+    }
+
+    private fun CommandContext.musicDeny() {
+        replyCat {
+            color = RED
+            title = "No! You can't do that."
+            +"this incident will be reported!"
         }
     }
 

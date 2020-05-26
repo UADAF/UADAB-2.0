@@ -53,8 +53,6 @@ class CommandClient(val prefix: String) {
         }
         val command = this[cmd] ?: return ExecutionResult.NOT_FOUND to cmd
         val context = CommandContext(message, args)
-
-
         try {
             if(command.canPerform(context)) {
                 command.perform(context)
@@ -64,8 +62,6 @@ class CommandClient(val prefix: String) {
         } catch (e: Exception) {
             return ExecutionResult.ERROR to "${e.javaClass.simpleName}: ${e.localizedMessage}"
         }
-
-
         return ExecutionResult.SUCCESS to ""
     }
 
