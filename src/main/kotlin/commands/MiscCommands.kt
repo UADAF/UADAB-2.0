@@ -1,14 +1,20 @@
 package commands
 
 import argparser.spec.RangeArgResult
-import cmd.CommandCategory
-import cmd.CommandListBuilder
-import cmd.ICommandList
-import cmd.Init
+import cmd.*
+import commands.MiscCommands.replyCat
+import dsl.PaginatedEmbedCreator
+import dsl.paginatedEmbed
 import getters.Getters
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.core.EmbedBuilder
+import net.dv8tion.jda.core.entities.GuildVoiceState
 import net.dv8tion.jda.core.entities.MessageEmbed
+import net.dv8tion.jda.core.entities.VoiceState
 import quoter.DisplayType
 import sources.HttpCodeSource
 import sources.QuoterSource
@@ -19,8 +25,11 @@ import utils.getters.Wrapper
 import java.awt.Color
 import utils.getters.Wrapper.WrapperState.*
 import java.awt.Color.*
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+
+typealias MonitorBuilder = PaginatedEmbedCreator.() -> Unit
 
 object MiscCommands : ICommandList {
 
@@ -230,41 +239,67 @@ object MiscCommands : ICommandList {
                     color = RED
                     +"No user specified"
                 }
-                val wuser = Getters.getUser(name)
-                when(wuser.state) {
-                    NONE -> return@action replyCat {
+                val users = Getters.getUser(name).toList()
+                if (users.isEmpty()) {
+                    return@action replyCat {
                         title = "No users found"
                         color = RED
                         +"$name matched no used"
                     }
-                    MULTI -> return@action replyCat {
-                        title = "NOT YET IMPLEMENTED"
-                        color = YELLOW
-                    }
-                    SINGLE -> {
-                        val user = wuser.getSingle()
-                        val boxedImage = user.getBoxedImageAsync()
-                        boxedImage.invokeOnCompletion {
-                            if(it != null) {
-                                replyCat {
-                                    title = "Unable to monitor"
-                                    +"Something went wrong with boxing:\n"
-                                    +it.toString()
-                                }
-                                return@invokeOnCompletion
-                            }
-                            val imageData = ByteArrayOutputStream().apply { ImageIO.write(boxedImage.getCompleted(), "png", this) }.toByteArray()
-                            replyCat {
-                                title = "Info about ${user.name}"
-                                thumbnail = "attachment://boxed_avatar.png"
-                                append field "Classification" to user.classification.name
-                                "boxed_avatar.png" attach imageData
-                            }
+                }
+                // Async fetch all users with images
+                val userData = GlobalScope.async(Dispatchers.IO) {
+                    users.map { userImage(it) }.map { monitorInfo(it.first, it.second) }
+                }
+                // on complete reply message
+                // if error - send error message
+                // if success, for each user create and fill new page
+                userData.invokeOnCompletion {
+                    replyCat {
+                        it?.let {
+                            title = "Unable to monitor"
+                            +"Something went wrong with boxing:\n"
+                            +it.toString()
+                        } ?: userData.getCompleted().forEach {
+                            page { this@replyCat.it() }
                         }
                     }
                 }
             }
         }
+    }
+
+    // Пиздани, если это так не работает (в плане асинхронности)
+    /**
+     * Blocking fetch image for user and return pair of user name image
+     */
+    private suspend fun userImage(user: UADABUser): Pair<UADABUser, ByteArray> =
+        user to ByteArrayOutputStream().apply {
+            ImageIO.write(user.getBoxedImageAsync().await(), "png", this)
+        }.toByteArray()
+
+    /**
+     * Get a function that build a single page for {user} with {image}
+     */
+    private fun monitorInfo(user: UADABUser, imageData: ByteArray): MonitorBuilder = {
+        title = "Info about ${user.name}"
+        thumbnail = "attachment://boxed_avatar.png"
+        inline field "Classification" to user.classification.name
+        inline field "SSN" to user.ssn.redactedSSNString
+        append field "Name" to user.name
+        inline field "Location" to (user.discord.mutualGuilds.mapNotNull { guild ->
+            guild.getMember(user.discord)?.voiceState?.channel?.let { voice ->
+                guild to voice
+            }
+        }.firstOrNull()?.let { location ->
+            "${location.first.name}/${location.second.name}"
+        } ?: "[UNKNOWN]")
+        "boxed_avatar.png" attach imageData
+        inline field "Aliases" to "${user.discord.name}\n${
+            user.discord.mutualGuilds.mapNotNull { guild ->
+                guild.getMember(user.discord).nickname ?: null
+            }.toSet().joinToString("\n")
+        }"
     }
 
     val RangeArgResult.isEmpty

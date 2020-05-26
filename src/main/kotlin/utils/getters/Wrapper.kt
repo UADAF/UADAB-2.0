@@ -41,6 +41,13 @@ class Wrapper<T: Any> {
         return multi
     }
 
+    fun toList(): List<T> =
+        when (state) {
+            WrapperState.NONE -> emptyList()
+            WrapperState.SINGLE -> listOf(getSingle())
+            WrapperState.MULTI -> getMulti()
+        }
+
     private fun single(e: T) {
         single = e
         state = WrapperState.SINGLE
@@ -54,6 +61,5 @@ class Wrapper<T: Any> {
     private fun none() {
         state = WrapperState.NONE
     }
-
 
 }
