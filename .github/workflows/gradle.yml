@@ -22,7 +22,7 @@ jobs:
   upload:
     needs: build
     if: github.ref == 'v**' 
-    run-on: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Create release
         id: create_release
