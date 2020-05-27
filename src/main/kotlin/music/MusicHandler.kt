@@ -10,9 +10,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import commands.MusicCommands
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.core.entities.Guild
+import org.omg.SendingContext.RunTime
 import sources.MusicSource
 import sources.get
 import uadamusic.*
+import utils.MusicContextState
+import utils.exception.MusicContextInitializationException
 import java.lang.IllegalArgumentException
 import java.nio.file.Paths
 import java.util.*
@@ -22,8 +25,13 @@ object MusicHandler {
     private val playerManager: AudioPlayerManager = DefaultAudioPlayerManager()
     private val musicManagers: MutableMap<Long, GuildMusicManager> = mutableMapOf()
 
-    lateinit var context: MusicContext
-        private set
+    private var contextState: MusicContextState = MusicContextState(RuntimeException("Not initialized yet"))
+
+    val context: MusicContext
+        get() = contextState.context
+
+    val isContextAvailable: Boolean
+        get() = contextState.isAvailable
 
     val AudioTrack.data: MusicData
         get() {
@@ -54,8 +62,12 @@ object MusicHandler {
     }
 
     fun loadContext() = runBlocking {
-        MusicSource.reload()
-        context = MusicSource.get()
+        contextState = try {
+            MusicSource.reload()
+            MusicContextState(MusicSource.get())
+        } catch (e: Exception) {
+            MusicContextState(MusicContextInitializationException("Failed to load music context: ${e.localizedMessage}"))
+        }
     }
 
     @Synchronized

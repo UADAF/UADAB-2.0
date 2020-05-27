@@ -2,6 +2,8 @@ package cmd
 
 import argparser.tokenize
 import net.dv8tion.jda.core.entities.Message
+import uadamusic.MusicContext
+import utils.exception.MusicContextInitializationException
 
 class CommandClient(val prefix: String) {
 
@@ -9,6 +11,7 @@ class CommandClient(val prefix: String) {
         SUCCESS,
         NOT_FOUND,
         NOT_A_COMMAND,
+        MUSIC_CONTEXT_ERROR,
         ERROR
     }
 
@@ -66,12 +69,14 @@ class CommandClient(val prefix: String) {
     private suspend fun executeByContext(context: CommandContext): Pair<ExecutionResult, String> {
         val command = context.command
         try {
-            if(command.canPerform(context)) {
+            if (command.canPerform(context)) {
                 command.perform(context)
             } else {
                 command.deny(context)
             }
             _commandCache[context.guild.id] = context
+        } catch (e: MusicContextInitializationException) {
+            return ExecutionResult.MUSIC_CONTEXT_ERROR to e.msg
         } catch (e: Exception) {
             return ExecutionResult.ERROR to "${e.javaClass.simpleName}: ${e.localizedMessage}"
         }

@@ -6,6 +6,7 @@ import dsl.sendPaginatedEmbed
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import music.MusicHandler
 import net.dv8tion.jda.core.OnlineStatus
 import net.dv8tion.jda.core.entities.Game
 import net.dv8tion.jda.core.entities.Message
@@ -77,11 +78,19 @@ object EventListener {
         GlobalScope.launch {
             val (res, v) = UADAB.commandClient.handle(message)
             when(res) {
+                CommandClient.ExecutionResult.MUSIC_CONTEXT_ERROR -> {
+                    message.channel.sendEmbedWithAttachments(embed {
+                        color = Color.RED
+                        title = "Unable to acquire music context"
+                        append field "Message" to v
+                        append field "Music context state" to if (MusicHandler.isContextAvailable) "Available" else "Failed"
+                    }).queue()
+                }
                 CommandClient.ExecutionResult.ERROR -> {
                     message.channel.sendEmbedWithAttachments(embed {
                         color = Color.RED
                         title = "Something went wrong"
-                        +v
+                        append field "Message" to v
                     }).queue()
                 }
                 else -> {}

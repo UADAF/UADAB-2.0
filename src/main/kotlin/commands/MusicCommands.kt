@@ -20,6 +20,8 @@ import users.admin_or_interface
 import utils.extractCount
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 object MusicCommands : ICommandList {
 
@@ -27,6 +29,9 @@ object MusicCommands : ICommandList {
 
     const val numbermoji = '\u20e3'
     private val playlistTimeFormat = SimpleDateFormat("HH:mm:ss").apply { timeZone = TimeZone.getTimeZone("UTC") }
+
+    const val volumeHelp = "Use `volume + n` or `volume - n` to change volume by delta value or `volume n` to set volume"
+
     override fun init(): Init<CommandListBuilder> = {
 
         command("play") {
@@ -56,7 +61,8 @@ object MusicCommands : ICommandList {
                 val res = if (name.isEmpty()) {
                     MusicHandler.load(MusicHandler.context, guild, margs)
                 } else {
-                    val data = MusicHandler.context.search(name) ?: emptyList()
+                    val data = MusicHandler.context.search(name)
+                    if (data == null) return@action
                     when (data.size) {
                         0 -> {
                             replyCat {
@@ -306,13 +312,77 @@ object MusicCommands : ICommandList {
             allowed to admin_or_interface
             help = "Reload music context"
             action {
-                MusicSource.reload()
+                val contextState = MusicHandler.isContextAvailable
+                MusicHandler.loadContext()
+                val newContextState = MusicHandler.isContextAvailable
                 replyCat {
-                    color = GREEN
+                    color = if (newContextState) GREEN else RED
                     title = "Reloaded"
+                    +"Context ${if (newContextState xor  contextState) "is now" else "still"} ${if (newContextState) "available" else "not available"}"
                 }
             }
             onDenied { musicDeny() }
+        }
+        command("volume") {
+            allowed to assets
+            help = "Change volume"
+
+            val arguments by parser.leftoverDelegate()
+
+            action {
+                if (arguments.size > 1) {
+                    volumeByDelta(arguments[0], arguments[1])
+                } else if (arguments.size == 1){
+                    val value = arguments[0]
+                    if (value.first() in setOf('+', '-') && value.length > 1) {
+                        volumeByDelta(value.first().toString(), value.substring(1))
+                    } else {
+                        val volumeValue = parseVolumeValue(value) ?: return@action replyCat {
+                            title = "Invalid delta value"
+                            color = RED
+                            +volumeHelp
+                            +"Delta must be a positive number in range [0; 100]"
+                        }
+                        setVolume(volumeValue)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun parseVolumeValue(valueString: String): Int? {
+        val value = valueString.toIntOrNull()
+        if (value == null || value < 0 || value > 100) {
+           return null;
+        }
+        return value
+    }
+
+    private fun CommandContext.volumeByDelta(operator: String, deltaString: String) {
+        if (operator !in setOf("+", "-")) {
+            return replyCat {
+                title = "Invalid usage"
+                color = RED
+                +volumeHelp
+            }
+        }
+        val delta = parseVolumeValue(deltaString) ?: return replyCat {
+                title = "Invalid delta value"
+                color = RED
+                +volumeHelp
+                +"Delta must be a positive number in range [0; 100]"
+            }
+        val player = MusicHandler.getGuildAudioPlayer(guild)
+        setVolume(min(max(player.player.volume +
+                if (operator == "+") { delta } else { -delta }, 0), 100))
+    }
+
+    private fun CommandContext.setVolume(value: Int) {
+        MusicHandler.getGuildAudioPlayer(guild).player.volume = value
+        replyCat {
+            title = "Volume changed"
+            color = GREEN
+            +"New volume is ${value}"
         }
     }
 
