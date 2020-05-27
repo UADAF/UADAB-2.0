@@ -21,6 +21,4 @@ open class Command(val name: String, val aliases: List<String>, val category: Co
         return canPerform?.invoke(context) ?: context.author.classification in allowedClasses
     }
 
-
-
 }
