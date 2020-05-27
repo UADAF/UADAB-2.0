@@ -100,19 +100,23 @@ object EventListener {
 
     private fun bashCheck(message: Message) {
         GlobalScope.launch {
-            val matches = """(https?://)?(bash\.im/quote/)(\d+)""".toRegex().find(message.contentRaw) ?: return@launch
-            if (matches.groups.count() != 4) return@launch
-
-            val quote = BashUtils.fetchQuote(message.contentRaw) ?: return@launch
+            val matches = """(https?://)?bash\.im/quote/(\d+)""".toRegex().find(message.contentRaw) ?: return@launch
+            val grp = matches.groups
+            if (grp.count() != 3 || grp[2] == null) return@launch
+            val quoteUrl = "${grp[1]?.value ?: "https://"}bash.im/quote/${grp[2]?.value}"
+            val quote = BashUtils.fetchQuote(quoteUrl) ?: return@launch
             val channel = message.textChannel
             message.delete().queue()
 
             channel.sendPaginatedEmbed {
                 pattern {
                     title = "Цитата ${quote.id}"
-                    url = message.contentRaw
+                    url = quoteUrl
                     thumbnail = "https://bash.im/favicon-180x180.png"
                     color = Color.white
+                    footer {
+                        text = "sent by @${message.member.effectiveName}"
+                    }
                 }
                 +quote.content
             }

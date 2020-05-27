@@ -148,12 +148,14 @@ class FooterBuilder(private val builder: EmbedBuilder) : ElementBuilder {
 
     init {
         val e = builder.build().footer
-        text = e.text
-        icon = e.iconUrl
+        if(e != null) {
+            text = e.text
+            icon = e.iconUrl
+        }
     }
 
     override fun complete() {
-        builder.setTitle(text, icon)
+        builder.setFooter(text, icon)
     }
 
 }
@@ -165,9 +167,11 @@ class AuthorBuilder(private val builder: EmbedBuilder) : ElementBuilder {
 
     init {
         val e = builder.build().author
-        name = e.name
-        url = e.url
-        icon = e.iconUrl
+        if(e != null) {
+            name = e.name
+            url = e.url
+            icon = e.iconUrl
+        }
     }
 
     override fun complete() {
