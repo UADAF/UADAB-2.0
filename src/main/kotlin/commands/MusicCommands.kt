@@ -313,6 +313,7 @@ object MusicCommands : ICommandList {
             help = "Reload music context"
             action {
                 val contextState = MusicHandler.isContextAvailable
+                MusicSource.reload()
                 MusicHandler.loadContext()
                 val newContextState = MusicHandler.isContextAvailable
                 replyCat {

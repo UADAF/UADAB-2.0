@@ -63,7 +63,6 @@ object MusicHandler {
 
     fun loadContext() = runBlocking {
         contextState = try {
-            MusicSource.reload()
             MusicContextState(MusicSource.get())
         } catch (e: Exception) {
             MusicContextState(MusicContextInitializationException("Failed to load music context: ${e.localizedMessage}"))
