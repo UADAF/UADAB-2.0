@@ -15,6 +15,7 @@ import users.assets
 import users.everyone
 import java.awt.Color
 import java.awt.Color.GREEN
+import kotlin.system.exitProcess
 
 object SystemCommands : ICommandList {
 
@@ -173,7 +174,7 @@ object SystemCommands : ICommandList {
                         else -> +"... how did you just do it???"
                     }
                 }, success = {
-                    System.exit(0)
+                    exitProcess(0)
                 })
             }
         }

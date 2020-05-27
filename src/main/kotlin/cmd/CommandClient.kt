@@ -17,6 +17,10 @@ class CommandClient(val prefix: String) {
     val commands: Map<String, Command>
         get() = _commands
 
+    private val _commandCache: MutableMap<String, CommandContext> = mutableMapOf()
+
+    val commandCache: Map<String, CommandContext>
+        get() = _commandCache
 
     operator fun get(name: String): Command? = commands[name]
 
@@ -48,17 +52,26 @@ class CommandClient(val prefix: String) {
         }
         val cmd = tokenized[1]
         val args = tokenized.subList(2, tokenized.size)
-        if(cmd == "!!") {
-            TODO("Command repeat")
+        val context = if(cmd == "!!") {
+           commandCache[message.guild.id]?.copy(message)
+                ?: return ExecutionResult.NOT_FOUND to "First message in guild"
+        } else {
+            val command = this[cmd]
+                ?: return ExecutionResult.NOT_FOUND to cmd
+            CommandContext(command, message, args)
         }
-        val command = this[cmd] ?: return ExecutionResult.NOT_FOUND to cmd
-        val context = CommandContext(message, args)
+        return executeByContext(context)
+    }
+
+    private suspend fun executeByContext(context: CommandContext): Pair<ExecutionResult, String> {
+        val command = context.command
         try {
             if(command.canPerform(context)) {
                 command.perform(context)
             } else {
                 command.deny(context)
             }
+            _commandCache[context.guild.id] = context
         } catch (e: Exception) {
             return ExecutionResult.ERROR to "${e.javaClass.simpleName}: ${e.localizedMessage}"
         }

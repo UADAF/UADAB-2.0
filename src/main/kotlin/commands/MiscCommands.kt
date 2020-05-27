@@ -30,7 +30,6 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 typealias MonitorBuilder = PaginatedEmbedCreator.() -> Unit
-
 object MiscCommands : ICommandList {
 
     override val cat: CommandCategory =

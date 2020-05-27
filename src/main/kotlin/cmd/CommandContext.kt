@@ -13,13 +13,15 @@ import java.io.File
 typealias Success<T> = (T) -> Unit
 typealias Failure = Success<Throwable>
 
-class CommandContext(val message: Message, val args: List<String>) {
+class CommandContext(val command: Command, val message: Message, val args: List<String>) {
 
     val author by lazy { UADABUser.fromDiscord(message.author) }
 
     val guild: Guild
         get() = message.guild
 
+    fun copy(byMessage: Message): CommandContext =
+        CommandContext(command, byMessage, args)
 
     fun reply(msg: CharSequence,
               success: Success<Message>? = null, failure: Failure? = null)
