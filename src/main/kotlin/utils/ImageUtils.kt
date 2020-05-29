@@ -18,7 +18,7 @@ object ImageUtils {
         BufferedImage(img1.width, img1.height, BufferedImage.TYPE_INT_ARGB).apply {
             createGraphics().apply {
                 drawImage(img1, 0, 0, null)
-                composite = AlphaComposite.getInstance(AlphaComposite.SRC_ATOP, 1f)
+                composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)
                 drawImage(
                     if(img1.width == img2.width && img1.height == img2.height) img2
                     else img2.getScaledInstance(img1.width, img2.height, Image.SCALE_AREA_AVERAGING),
