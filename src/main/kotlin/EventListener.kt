@@ -17,6 +17,7 @@ import net.dv8tion.jda.core.events.message.MessageUpdateEvent
 import net.dv8tion.jda.core.hooks.SubscribeEvent
 import org.jetbrains.exposed.sql.transactions.transaction
 import sources.*
+import users.Classification
 import users.UADABUser
 import utils.BashUtils
 import java.awt.Color
@@ -28,6 +29,9 @@ object EventListener {
         GlobalScope.launch {
             transaction {
                 jda.users.forEach { UADABUser.fromDiscord(it, openTransaction = false) }
+                val self = UADABUser.fromDiscord(jda.selfUser)
+                self.classification = Classification.SYSTEM
+                self.save()
             }
         }
         GlobalScope.launch {

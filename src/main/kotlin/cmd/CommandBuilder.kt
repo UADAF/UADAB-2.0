@@ -3,11 +3,9 @@
 package cmd
 
 import argparser.ArgParser
+import dsl.Init
 import users.Classification
 import users.default
-
-
-typealias Init<T> = T.() -> Unit
 
 @DslMarker
 annotation class CommandBuilderDsl

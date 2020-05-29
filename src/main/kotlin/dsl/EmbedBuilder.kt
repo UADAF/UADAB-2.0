@@ -84,16 +84,19 @@ open class BaseEmbedCreater {
         setElement(::FooterBuilder, init)
     }
 
-    open infix fun String.attach(stream: InputStream) {
+    open infix fun String.attach(stream: InputStream): String {
         attachments[this] = stream
+        return "attachment://${this}"
     }
 
-    open infix fun String.attach(stream: File) {
+    open infix fun String.attach(stream: File): String {
         attachments[this] = FileInputStream(stream)
+        return "attachment://${this}"
     }
 
-    open infix fun String.attach(stream: ByteArray) {
+    open infix fun String.attach(stream: ByteArray): String {
         attachments[this] = ByteArrayInputStream(stream)
+        return "attachment://${this}"
     }
 
     private inline fun <T : ElementBuilder> setElement(eBuilder: (EmbedBuilder) -> T, init: Init<T>) {

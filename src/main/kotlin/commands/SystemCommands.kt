@@ -4,7 +4,7 @@ import UADAB
 import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
-import cmd.Init
+import dsl.Init
 import dsl.embed
 import net.dv8tion.jda.core.Permission
 import users.Classification

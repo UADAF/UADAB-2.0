@@ -1,5 +1,6 @@
 package cmd
 
+import dsl.Init
 import dsl.PaginatedEmbedCreator
 
 interface ICommandList {

@@ -4,7 +4,7 @@ import utils.Boxes
 import utils.poiColors
 import java.awt.Color
 
-data class Classification(val name: String, val cornerColor: Color, val barColor: Color) {
+data class Classification(val name: String, val cornerColor: Color, val barColor: Color, val permissionLevel: Int) {
 
 
     init {
@@ -23,15 +23,15 @@ data class Classification(val name: String, val cornerColor: Color, val barColor
 
         operator fun get(s: String) = classes[s.toLowerCase()] ?: throw ClassificationNotFoundException(s)
 
-        val IRRELEVANT = Classification("Irrelevant", poiColors.getValue("white"), poiColors.getValue("white"))
-        val ASSET = Classification("Asset", poiColors.getValue("yellow"), poiColors.getValue("yellow"))
-        val ANALOG_INTERFACE = Classification("Analog Interface", poiColors.getValue("yellow"), poiColors.getValue("black"))
-        val IRRELEVANT_THREAT = Classification("Threat", poiColors.getValue("red"), poiColors.getValue("white"))
-        val RELEVANT_THREAT = Classification("Relevant Threat", poiColors.getValue("red"), poiColors.getValue("white"))
-        val RELEVANT_ONE = Classification("Relevant One", poiColors.getValue("white"), poiColors.getValue("blue"))
-        val CATALYST = Classification("Catalyst", poiColors.getValue("blue"), poiColors.getValue("blue"))
-        val ADMIN = Classification("Admin", poiColors.getValue("yellow"), poiColors.getValue("yellow"))
-        val SYSTEM = Classification("System", poiColors.getValue("yellow"), poiColors.getValue("blue"))
+        val IRRELEVANT = Classification("Irrelevant", poiColors.getValue("white"), poiColors.getValue("white"), 0)
+        val ASSET = Classification("Asset", poiColors.getValue("yellow"), poiColors.getValue("yellow"), 100)
+        val ANALOG_INTERFACE = Classification("Analog Interface", poiColors.getValue("yellow"), poiColors.getValue("black"), 1000)
+        val IRRELEVANT_THREAT = Classification("Threat", poiColors.getValue("red"), poiColors.getValue("white"), -10)
+        val RELEVANT_THREAT = Classification("Relevant Threat", poiColors.getValue("red"), poiColors.getValue("white"), -1000)
+        val RELEVANT_ONE = Classification("Relevant One", poiColors.getValue("white"), poiColors.getValue("blue"), 0)
+        val CATALYST = Classification("Catalyst", poiColors.getValue("blue"), poiColors.getValue("blue"), 10)
+        val ADMIN = Classification("Admin", poiColors.getValue("yellow"), poiColors.getValue("yellow"), 10000000)
+        val SYSTEM = Classification("System", poiColors.getValue("yellow"), poiColors.getValue("blue"), 10000001)
     }
 }
 

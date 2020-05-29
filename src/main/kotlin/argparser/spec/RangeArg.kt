@@ -3,6 +3,12 @@ package argparser.spec
 class RangeArgResult(val from: Int?, val to: Int?) : ArgResult() {
     override val type: String = "range"
 
+    val isEmpty
+        get() = from == null && to == null
+
+    val isNotEmpty
+        get() = !isEmpty
+
     operator fun component1() = from
     operator fun component2() = to
 }

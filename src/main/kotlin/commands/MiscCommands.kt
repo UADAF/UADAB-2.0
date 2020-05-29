@@ -2,6 +2,7 @@ package commands
 
 import argparser.spec.RangeArgResult
 import cmd.*
+import dsl.Init
 import commands.MiscCommands.replyCat
 import dsl.PaginatedEmbedCreator
 import dsl.paginatedEmbed
@@ -29,7 +30,6 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
-typealias MonitorBuilder = PaginatedEmbedCreator.() -> Unit
 object MiscCommands : ICommandList {
 
     override val cat: CommandCategory =
@@ -227,84 +227,6 @@ object MiscCommands : ICommandList {
                 }
             }
         }
-        command("monitor") {
-            help = "Can you hear me?"
-            aliases { +"mon" }
-            val nameArg by parser.plain("user")
-            val leftover by parser.leftoverDelegate()
-            action {
-                val name = nameArg.value ?: return@action replyCat {
-                    title = "Invalid args"
-                    color = RED
-                    +"No user specified"
-                }
-                val users = Getters.getUser(name).toList()
-                if (users.isEmpty()) {
-                    return@action replyCat {
-                        title = "No users found"
-                        color = RED
-                        +"$name matched no used"
-                    }
-                }
-                // Async fetch all users with images
-                val userData = GlobalScope.async(Dispatchers.IO) {
-                    users.map { userImage(it) }.map { monitorInfo(it.first, it.second) }
-                }
-                // on complete reply message
-                // if error - send error message
-                // if success, for each user create and fill new page
-                userData.invokeOnCompletion {
-                    replyCat {
-                        it?.let {
-                            title = "Unable to monitor"
-                            +"Something went wrong with boxing:\n"
-                            +it.toString()
-                        } ?: userData.getCompleted().forEach {
-                            page { this@replyCat.it() }
-                        }
-                    }
-                }
-            }
-        }
     }
-
-    // Пиздани, если это так не работает (в плане асинхронности)
-    /**
-     * Blocking fetch image for user and return pair of user name image
-     */
-    private suspend fun userImage(user: UADABUser): Pair<UADABUser, ByteArray> =
-        user to ByteArrayOutputStream().apply {
-            ImageIO.write(user.getBoxedImageAsync().await(), "png", this)
-        }.toByteArray()
-
-    /**
-     * Get a function that build a single page for {user} with {image}
-     */
-    private fun monitorInfo(user: UADABUser, imageData: ByteArray): MonitorBuilder = {
-        title = "Info about ${user.name}"
-        thumbnail = "attachment://boxed_avatar.png"
-        inline field "Classification" to user.classification.name
-        inline field "SSN" to user.ssn.redactedSSNString
-        append field "Name" to user.name
-        inline field "Location" to (user.discord.mutualGuilds.mapNotNull { guild ->
-            guild.getMember(user.discord)?.voiceState?.channel?.let { voice ->
-                guild to voice
-            }
-        }.firstOrNull()?.let { location ->
-            "${location.first.name}/${location.second.name}"
-        } ?: "[UNKNOWN]")
-        "boxed_avatar.png" attach imageData
-        inline field "Aliases" to "${user.discord.name}\n${
-            user.discord.mutualGuilds.mapNotNull { guild ->
-                guild.getMember(user.discord).nickname ?: null
-            }.toSet().joinToString("\n")
-        }"
-    }
-
-    val RangeArgResult.isEmpty
-        get() = from == null && to == null
-
-    val RangeArgResult.isNotEmpty
-        get() = !isEmpty
 
 }

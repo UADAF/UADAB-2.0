@@ -1,6 +1,7 @@
 package commands
 
 import cmd.*
+import dsl.Init
 import dsl.PaginatedEmbedCreator
 import dsl.embed
 import music.*
@@ -383,7 +384,7 @@ object MusicCommands : ICommandList {
         replyCat {
             title = "Volume changed"
             color = GREEN
-            +"New volume is ${value}"
+            +"New volume is $value"
         }
     }
 
@@ -452,6 +453,10 @@ object MusicCommands : ICommandList {
                 color = RED
                 title = "Everything went wrong everywhere"
                 +"Unable to load anything..."
+            }
+            is MHNoMoreTracks -> replyCat {
+                color = YELLOW
+                title = "Loaded all possible tracks"
             }
         }
     }
