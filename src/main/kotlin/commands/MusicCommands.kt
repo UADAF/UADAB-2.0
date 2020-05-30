@@ -398,7 +398,7 @@ object MusicCommands : ICommandList {
 
     fun currentImg(guild: Guild): String = MusicHandler.currentTrack(guild)?.data?.imgUrl ?: cat.img!!
 
-    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = replyCat {
+    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {
         thumbnail = data.imgUrl ?: cat.img
         +formatData(data)
         embed()
