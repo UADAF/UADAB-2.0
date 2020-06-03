@@ -19,6 +19,8 @@ import net.dv8tion.jda.core.entities.Guild
 import sources.MusicSource
 import users.admin_or_interface
 import utils.extractCount
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.max
@@ -347,6 +349,41 @@ object MusicCommands : ICommandList {
                         }
                         setVolume(volumeValue)
                     }
+                }
+            }
+        }
+        command("upload") {
+            allowed to assets
+
+            val arguments by parser.leftoverDelegate()
+
+            action {
+                println(arguments)
+                if (arguments.isEmpty()) {
+                    return@action replyCat {
+                        title = "Invalid arguments"
+                        color = RED
+                        +"Use upload <artist> [album] [name]\n"
+                        +arguments.toString()
+                    }
+                }
+                if (message.attachments.isEmpty()) {
+                    return@action replyCat {
+                        title = "No attachment"
+                        color = RED
+                        +"You need to upload music file with command"
+                    }
+                }
+                val attachment = message.attachments.first()
+                val artist = arguments.first()
+                val album = arguments.getOrElse(1) {""}
+                val name = arguments.getOrElse(2) {attachment.fileName}
+
+                val path = Paths.get(UADAB.cfg.musicDir, artist, album, name)
+                replyCat {
+                    title = "Upload"
+                    color = GREEN
+                    +path.toString()
                 }
             }
         }
