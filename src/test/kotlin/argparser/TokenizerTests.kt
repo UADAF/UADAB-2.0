@@ -89,4 +89,18 @@ class TokenizerTests {
             fail("Should not be parsed")
         } catch(e: IllegalArgumentException) {}
     }
+
+    @Test
+    fun emptySingleQuotes() {
+        try {
+            assertEquals(listOf("hello", "", "world"), tokenize("hello '' world"))
+        } catch (e: IllegalArgumentException) { fail(e.localizedMessage) }
+    }
+
+    @Test
+    fun emptyDoublyQuotes() {
+        try {
+            assertEquals(listOf("hello", "", "world"), tokenize("hello \"\" world"))
+        } catch (e: IllegalArgumentException) { fail(e.localizedMessage) }
+    }
 }

@@ -42,6 +42,7 @@ class ArgParser {
     fun parse(args: List<String>): Map<String, ArgResult> {
         //We will not even try to do something, if parser has no specs
         if (specs.isEmpty()) {
+            leftover.addAll(args)
             return results
         }
         args.forEach { arg ->

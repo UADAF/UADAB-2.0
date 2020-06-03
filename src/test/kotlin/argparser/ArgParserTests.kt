@@ -208,5 +208,13 @@ class ArgParserTests {
         val sad by delegate.value("sad", "das")
         assertEquals(manual, delegate)
     }
+
+    @Test
+    fun leftoverWithoutSpecs() {
+        val parser = ArgParser()
+        val leftover by parser.leftoverDelegate()
+        parser.parse(listOf("asd", "dsa"))
+        assertEquals(listOf("asd", "dsa"), leftover)
+    }
     
 }
