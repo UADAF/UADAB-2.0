@@ -1,12 +1,17 @@
 package commands
 
 import cmd.*
+import com.google.gson.GsonBuilder
 import dsl.Init
 import dsl.PaginatedEmbedCreator
 import dsl.embed
+import io.ktor.util.extension
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import music.*
 import users.assets
-import java.lang.IllegalArgumentException
 import music.MusicHandler.imgUrl
 import net.dv8tion.jda.core.entities.MessageReaction
 import uadamusic.CONTEXT
@@ -14,12 +19,19 @@ import uadamusic.MusicData
 import java.awt.Color
 import java.awt.Color.*
 import music.MusicHandler.data
-import net.dv8tion.jda.core.entities.Emote
 import net.dv8tion.jda.core.entities.Guild
+import net.dv8tion.jda.core.entities.Message
+import net.dv8tion.jda.core.requests.Route
+import net.dv8tion.jda.core.requests.Route.Messages.SEND_MESSAGE
+import net.dv8tion.jda.core.requests.restaction.MessageAction
+import quoter.util.JsonObjectBuilder
+import quoter.util.json
 import sources.MusicSource
+import users.UADABUser
+import users.admin
 import users.admin_or_interface
 import utils.extractCount
-import java.nio.file.Path
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.text.SimpleDateFormat
 import java.util.*
@@ -355,43 +367,127 @@ object MusicCommands : ICommandList {
         command("upload") {
             allowed to assets
 
-            val arguments by parser.leftoverDelegate()
+            val authorValue by parser.value("author")
+                val albumValue by parser.value("album")
+                val trackNameValue by parser.leftoverDelegate()
 
-            action {
-                println(arguments)
-                if (arguments.isEmpty()) {
-                    return@action replyCat {
-                        title = "Invalid arguments"
-                        color = RED
-                        +"Use upload <artist> [album] [name]\n"
-                        +arguments.toString()
+                action {
+                    if (message.attachments.isEmpty()) {
+                        return@action replyCat {
+                            title = "No attachment"
+                            color = RED
+                            +"You need to upload music file with command"
+                        }
                     }
-                }
-                if (message.attachments.isEmpty()) {
-                    return@action replyCat {
-                        title = "No attachment"
-                        color = RED
-                        +"You need to upload music file with command"
-                    }
-                }
-                val attachment = message.attachments.first()
-                val artist = arguments.first()
-                val album = arguments.getOrElse(1) {""}
-                val name = arguments.getOrElse(2) {attachment.fileName}
+                    val attachment = message.attachments.first()
+                    val artist= authorValue.value ?: ""
+                    val album = albumValue.value ?: ""
+                    var name = trackNameValue.joinToString(" ")
 
-                val path = Paths.get(UADAB.cfg.musicDir, artist, album, name)
-                replyCat {
-                    title = "Upload"
-                    color = GREEN
-                    +path.toString()
+                    val parts = name.split(".")
+                    val extension = if (parts.size > 1) {
+                        parts.last()
+                    } else ""
+
+                    val fileParts = attachment.fileName.split(".")
+                    val fileExtension = if (fileParts.size > 1) {
+                        fileParts.last()
+                    } else ""
+
+                    if (extension.isEmpty()) {
+                        name += ".mp3"
+                    }
+
+                    if ((extension.isNotEmpty() && extension != "mp3") || fileExtension != "mp3") {
+                        return@action replyCat {
+                            title = "Invalid music extension"
+                            append field "Name" to name
+                            append field "File" to attachment.fileName
+                            color = RED
+                        }
+                    }
+
+                    val musicInfoName = "music.info.json"
+                    val artistInfo = Paths.get(UADAB.cfg.musicDir, artist, musicInfoName)
+                    val albumInfo = Paths.get(UADAB.cfg.musicDir, artist, album, musicInfoName)
+                    val path: java.nio.file.Path = Paths.get(UADAB.cfg.musicDir, artist, album, name)
+
+                    reply (embed {
+                        title = "Upload"
+                        color = GREEN
+                        append field "Path" to path
+                        if (album.isNotEmpty())
+                            inline field "Album" to album
+                        if (artist.isNotEmpty())
+                            inline field "Author" to artist
+                        append field "Track" to name
+                        + "Waiting for approve"
+                    }, success = { msg ->
+                        Reactions.register(msg.id) {
+                            if (it.user != UADAB.bot.selfUser) {
+                                val re = it.reactionEmote
+                                if (re.name == "\u2705") {
+                                    val user = UADABUser.fromDiscord(it.user)
+                                    if (user.classification in admin_or_interface) {
+                                        GlobalScope.launch(Dispatchers.IO) {
+                                            val embed = try {
+                                                if (Files.notExists(artistInfo)) {
+                                                    Files.createDirectory(Paths.get(UADAB.cfg.musicDir, artist))
+                                                    Files.createFile(artistInfo).toFile().writeText(json {
+                                                        "type" to "author"
+                                                    }.toString())
+                                                }
+
+                                                if (album.isNotEmpty() && Files.notExists(albumInfo)) {
+                                                    Files.createDirectory(Paths.get(UADAB.cfg.musicDir, artist, album))
+                                                    Files.createFile(albumInfo).toFile().writeText(json {
+                                                        "type" to "album"
+                                                    }.toString())
+                                                }
+                                                attachment.withInputStream { stream ->
+                                                    Files.copy(stream, Paths.get(path.toFile().absolutePath))
+                                                }
+                                                embed {
+                                                    title = "Upload approved"
+                                                    color = GREEN
+                                                    append field "Approved by" to user.name
+                                                    append field "File" to path.toString()
+                                                    +"File downloaded successfully"
+                                                }
+                                            } catch (e: Throwable) {
+                                                embed {
+                                                    title = "Upload approved"
+                                                    color = RED
+                                                    append field "Approved by" to user.name
+                                                    inline field "File" to path.toString()
+                                                    append field "Exception" to e.javaClass.simpleName
+                                                    append field "Message" to e.localizedMessage
+                                                }
+                                            }
+                                            MessageAction(msg.jda, Route.Messages.EDIT_MESSAGE.compile(msg.channel.id, msg.id), msg.channel)
+                                                    .override(true)
+                                                    .embed(embed.first).queue()
+                                            msg.clearReactions().queue()
+                                        }
+                                        return@register true
+                                    }
+                                } else if (re.name == "\u274C") {
+                                    msg.delete().queue()
+                                    return@register true
+                                }
+                            }
+                            return@register false
+                        }
+                        msg.addReaction("\u2705").queue()
+                        msg.addReaction("\u274C").queue()
+                    })
                 }
             }
         }
-    }
 
-    private fun parseVolumeValue(valueString: String): Int? {
-        val value = valueString.toIntOrNull()
-        if (value == null || value < 0 || value > 100) {
+        private fun parseVolumeValue(valueString: String): Int? {
+            val value = valueString.toIntOrNull()
+            if (value == null || value < 0 || value > 100) {
            return null;
         }
         return value
