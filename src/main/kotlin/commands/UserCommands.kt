@@ -29,6 +29,7 @@ object UserCommands : ICommandList {
             help = "Can you hear me?"
             aliases { +"mon" }
             val nameArg by parser.plain("user")
+            @Suppress("UNUSED_VARIABLE")
             val leftover by parser.leftoverDelegate()
             action {
                 val name = nameArg.value ?: return@action replyCat {
