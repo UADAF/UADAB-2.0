@@ -3,7 +3,6 @@ package utils
 import dao.BashQuote
 import io.ktor.client.call.call
 import io.ktor.client.response.readText
-import io.ktor.client.response.readText
 
 object BashUtils {
     suspend fun fetchQuote(url: String): BashQuote? {

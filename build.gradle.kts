@@ -17,24 +17,25 @@ repositories {
 }
 val jdaVersion = "3.8.3_462"
 val gsonVersion = "2.8.5"
-val ktorVersion = "1.0.1"
+val ktorVersion = "1.2.1"
 dependencies {
-    compile(kotlin("stdlib-jdk8"))
-    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
-    compile("net.dv8tion:JDA:$jdaVersion")
-    compile("com.google.code.gson:gson:$gsonVersion")
-    compile("org.slf4j:slf4j-simple:1.7.25")
-    compile("de.codecentric.centerdevice:javafxsvg:1.3.0")
-    compile("io.ktor:ktor-client-core:$ktorVersion")
-    compile("io.ktor:ktor-client-apache:$ktorVersion")
-    compile("org.jetbrains.exposed:exposed:0.10.4")
-    compile("mysql:mysql-connector-java:6.0.6")
-    compile("com.github.kizitonwose.time:time:1.0.2")
-    compile("com.uadaf:uadamusic:2.5")
-    compile("com.uadaf:quoter-api:1.1")
-    compile("com.sedmelluq:lavaplayer:1.3.12")
-    compile("pl.droidsonroids:jspoon:1.3.2")
-    testCompile("junit:junit:4.12")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.8")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.3.8")
+    implementation("net.dv8tion:JDA:$jdaVersion")
+    implementation("com.google.code.gson:gson:$gsonVersion")
+    implementation("org.slf4j:slf4j-simple:1.7.25")
+    implementation("de.codecentric.centerdevice:javafxsvg:1.3.0")
+    implementation("io.ktor:ktor-client-core:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("org.jetbrains.exposed:exposed:0.10.4")
+    implementation("mysql:mysql-connector-java:6.0.6")
+    implementation("com.github.kizitonwose.time:time:1.0.2")
+    implementation("com.uadaf:uadamusic:2.5")
+    implementation("com.uadaf:quoter-api:1.3.1")
+    implementation("com.sedmelluq:lavaplayer:1.3.12")
+    implementation("pl.droidsonroids:jspoon:1.3.2")
+    testImplementation("junit:junit:4.12")
 }
 
 val jar by tasks.getting(Jar::class) {
@@ -50,5 +51,4 @@ val compileKotlin: KotlinCompile by tasks
 
 compileKotlin.kotlinOptions {
     languageVersion = "1.3"
-    freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
 }

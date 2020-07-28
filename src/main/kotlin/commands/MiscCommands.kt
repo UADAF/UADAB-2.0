@@ -1,34 +1,15 @@
 package commands
 
-import argparser.spec.RangeArgResult
 import cmd.*
 import dsl.Init
-import commands.MiscCommands.replyCat
-import dsl.PaginatedEmbedCreator
-import dsl.paginatedEmbed
-import getters.Getters
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.entities.GuildVoiceState
-import net.dv8tion.jda.core.entities.MessageEmbed
-import net.dv8tion.jda.core.entities.VoiceState
 import quoter.DisplayType
 import sources.HttpCodeSource
 import sources.QuoterSource
 import sources.get
-import users.UADABUser
 import utils.extractCount
-import utils.getters.Wrapper
 import java.awt.Color
-import utils.getters.Wrapper.WrapperState.*
 import java.awt.Color.*
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import javax.imageio.ImageIO
 
 object MiscCommands : ICommandList {
 
