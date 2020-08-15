@@ -2,24 +2,24 @@ package sources
 
 object ExternalSourceRegistry {
 
-    private val mutableSources: MutableList<IExternalSource<*>> = mutableListOf()
-    val sources: List<IExternalSource<*>>
+    private val mutableSources: MutableMap<String, IExternalSource<*>> = mutableMapOf()
+    val sources: Map<String, IExternalSource<*>>
         get() = mutableSources
 
     init {
-        register(HttpCodeSource)
-        register(XkcdColorSource)
-        register(GameListSource)
-        register(MusicSource)
-        register(QuoterSource)
+        register("http", HttpCodeSource)
+        register("colors", XkcdColorSource)
+        register("phrases", GameListSource)
+        register("music", MusicSource)
+        register("quoter", QuoterSource)
     }
 
-    fun register(s: IExternalSource<*>) {
-        mutableSources.add(s)
+    fun register(name: String, s: IExternalSource<*>) {
+        mutableSources[name] = s
     }
 
-    fun unregister(s: IExternalSource<*>) {
-        mutableSources.remove(s)
+    fun unregister(name: String) {
+        mutableSources.remove(name)
     }
 
 }

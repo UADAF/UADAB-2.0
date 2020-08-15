@@ -5,8 +5,15 @@ import cmd.CommandCategory
 import cmd.CommandListBuilder
 import cmd.ICommandList
 import dsl.Init
+import dsl.editEmbedWithAttachments
 import dsl.embed
+import dsl.paginatedEmbed
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.dv8tion.jda.core.Permission
+import sources.ExternalSourceRegistry
+import sources.get
 import users.Classification
 import users.Classification.Companion.ADMIN
 import users.Classification.Companion.ANALOG_INTERFACE
@@ -15,6 +22,7 @@ import users.assets
 import users.everyone
 import java.awt.Color
 import java.awt.Color.GREEN
+import java.awt.Color.YELLOW
 import kotlin.system.exitProcess
 
 object SystemCommands : ICommandList {
@@ -103,6 +111,7 @@ object SystemCommands : ICommandList {
                                     append field "text" to "Constant text. Like 'args' in here means that you have to type 'args' to get this message"
                                     append field "i%name%" to "Number argument. Just some number, like 1, 12, or 6741"
                                     append field "(%arg%)+" to "Arguments with + on the end can be repeated infinitely, use space as separator"
+                                    append field "(%arg%)*" to "Arguments with * can be optional or repeated infinitely, use space as separator"
                                     append field "(%arg%)?" to "Arguments with ? are optional, you can just skip them"
                                     append field "--some-flag" to "Flag argument. It's like constant text but with few features"
                                     append field "-(-s)ome-flag" to "Flag with shortname. You can use '-s' instead of '--some-flag'"
@@ -178,7 +187,45 @@ object SystemCommands : ICommandList {
                 })
             }
         }
+        command("reload") {
+            allowed to assets
+            help = "Reload sources (such as music, colors, etc...)"
+            args = "(%source%)*"
+            val params by parser.leftoverDelegate()
+            action {
+                val sources = ExternalSourceRegistry.sources
+                if (params.isEmpty()) {
+                    return@action replyCat {
+                        title = "Sources"
+                        color = GREEN
+                        sources.keys.forEach { -"- $it" }
+                    }
+                }
+
+                reply(embed {
+                    title = "Reloading..."
+                    color = YELLOW
+                }, success = {
+                    it.channel.editEmbedWithAttachments(it.idLong, embed {
+                        title = "Reload finished"
+                        color = GREEN
+                        runBlocking {
+                            args.map {
+                                async {
+                                    it to (sources[it]?.let { source ->
+                                        source.reload()
+                                        source.getAsync().getCompletionExceptionOrNull()?.let { e ->
+                                            "${e::class.simpleName}"
+                                        } ?: "Reloaded"
+                                    } ?: "Invalid name")
+                                }
+                            }.map { d -> d.await() }
+                        }.forEach { (key, result) ->
+                            append field key to result
+                        }
+                    }).queue()
+                })
+            }
+        }
     }
-
-
 }

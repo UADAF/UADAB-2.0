@@ -325,22 +325,6 @@ object MusicCommands : ICommandList {
             }
             onDenied { musicDeny() }
         }
-        command("reload") {
-            allowed to admin_or_interface
-            help = "Reload music context"
-            action {
-                val contextState = MusicHandler.isContextAvailable
-                MusicSource.reload()
-                MusicHandler.loadContext()
-                val newContextState = MusicHandler.isContextAvailable
-                replyCat {
-                    color = if (newContextState) GREEN else RED
-                    title = "Reloaded"
-                    +"Context ${if (newContextState xor contextState) "is now" else "still"} ${if (newContextState) "available" else "not available"}"
-                }
-            }
-            onDenied { musicDeny() }
-        }
         command("volume") {
             allowed to assets
             help = "Change volume"

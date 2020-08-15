@@ -36,7 +36,7 @@ object EventListener {
         }
         GlobalScope.launch {
             UADAB.log.debug("Loading...")
-            ExternalSourceRegistry.sources.forEach {
+            ExternalSourceRegistry.sources.values.forEach {
                 launch {
                     it.startLoading()
                 }

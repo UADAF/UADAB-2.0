@@ -72,6 +72,10 @@ open class BaseEmbedCreater {
         text(this)
     }
 
+    open operator fun String.unaryMinus() {
+        +"$this\n"
+    }
+
     open fun field(init: Init<FieldBuilder>) {
         setElement(::FieldBuilder, init)
     }
