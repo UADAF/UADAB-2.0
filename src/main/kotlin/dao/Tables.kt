@@ -13,7 +13,7 @@ object DAOUsers : Table("users") {
 object DAOPhrases : Table("idle_phrases") {
     val type = enumerationByName("type",
         Game.GameType.values().map { it.name.length }.max() ?: 9,
-        Game.GameType::class.java)
+        Game.GameType::class)
     val phrase = text("phrase")
     val weight = float("weight")
 }
