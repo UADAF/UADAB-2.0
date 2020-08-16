@@ -6,6 +6,8 @@ import cmd.CommandCategory
 import cmd.CommandContext
 import cmd.CommandListBuilder
 import cmd.ICommandList
+import commands.MusicCommands.handleLoad
+import commands.MusicCommands.replyCat
 import dsl.Init
 import dsl.PaginatedEmbedCreator
 import dsl.embed
@@ -14,13 +16,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import music.*
 import music.MusicHandler.data
-import music.MusicHandler.imgUrl
 import net.dv8tion.jda.core.entities.Guild
 import net.dv8tion.jda.core.entities.MessageReaction
 import net.dv8tion.jda.core.requests.Route
 import net.dv8tion.jda.core.requests.restaction.MessageAction
 import quoter.util.json
-import sources.MusicSource
 import uadamusic.CONTEXT
 import uadamusic.MusicData
 import users.UADABUser
@@ -50,7 +50,6 @@ object MusicCommands : ICommandList {
             get() = split(".").run { if(size > 1) last() else "" }
 
     override fun init(): Init<CommandListBuilder> = {
-
         command("play") {
             allowed to assets
             help = "Play"
@@ -58,9 +57,9 @@ object MusicCommands : ICommandList {
             val repeat by parser.flag("repeat", shortname = 'r')
             val first by parser.flag("first", shortname = 'f')
             val next by parser.flag("next", shortname = 'n')
-            val largs by parser.leftoverDelegate()
+            val leftoverArgs by parser.leftoverDelegate()
             action {
-                val (count, namel) = extractCount(largs)
+                val (count, namel) = extractCount(leftoverArgs)
                 val name = namel.joinToString(" ")
                 if (first.present && next.present) {
                     replyCat {
@@ -68,78 +67,18 @@ object MusicCommands : ICommandList {
                         title = "Only one of 'first' or 'next' can be specified"
                     }
                 }
-                val margs = MusicHandler.MusicArgs(
+                val musicArgs = MusicHandler.MusicArgs(
                     count,
                     !(repeat.present || (all.present && count > 1) || name.isNotEmpty()),
                     all.present,
                     first.present,
                     next.present
                 )
-                val res = if (name.isEmpty()) {
-                    MusicHandler.load(MusicHandler.context, guild, margs)
-                } else {
-                    val data = MusicHandler.context.search(name)
-                    if (data == null) return@action
-                    when (data.size) {
-                        0 -> {
-                            replyCat {
-                                color = RED
-                                title = "Found a whole lot of nothing"
-                                +name
-                            }
-                            null
-                        }
-                        1 -> {
-                            MusicHandler.load(data.first(), guild, margs)
-                        }
-                        in 2..10 -> {
-                            reply(embed {
-                                color = YELLOW
-                                title = "Select variant"
-                                data.forEachIndexed { i, e ->
-                                    +"${i + 1}$numbermoji - ${e.type.name.capitalize()} - ${formatData(e)}\n\n"
-                                }
-                            }, success = { msg ->
-                                Reactions.register(msg.id) {
-                                    if (it.user != UADAB.bot.selfUser) {
-                                        val re = it.reactionEmote.name
-                                        if (re.length > 1 && re[1] == numbermoji) {
-                                            val num = re[0]
-                                            if (num in '1'..('0' + data.size)) {
-                                                val r =
-                                                    MusicHandler.load(data[num.toString().toInt() - 1], guild, margs)
-                                                handleLoad(r)
-                                                //Use getMessageById to update message, because msg is cached version
-                                                msg.channel.getMessageById(msg.id).complete().reactions.filter(
-                                                    MessageReaction::isSelf
-                                                ).forEach { rec ->
-                                                    rec.removeReaction().queue()
-                                                }
-
-                                            }
-                                        }
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-                                for (j in 1..data.size) {
-                                    msg.addReaction("$j$numbermoji").queue()
-                                }
-                            })
-                            null
-                        }
-                        else -> {
-                            replyCat {
-                                color = RED
-                                title = "To many results, try narrowing it down"
-                                +name
-                            }
-                            null
-                        }
-                    } ?: return@action
-                }
-                handleLoad(res)
+                when {
+                    name.isEmpty() -> MusicHandler.load(MusicHandler.context, guild, musicArgs)
+                    name.startsWith("http") -> MusicHandler.loadUrl(name, guild, musicArgs)
+                    else -> playQuery(name, musicArgs)
+                }?.let { handleLoad(it) }
             }
             onDenied { musicDeny() }
         }
@@ -202,11 +141,11 @@ object MusicCommands : ICommandList {
                         pattern {
                             color = GREEN
                             title = "Playlist"
-                            thumbnail = cur.data.imgUrl ?: cat.img
+                            thumbnail = cur.data.getImage(cat.img)
                         }
-                        +"1: ${formatData(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
+                        +"1: ${formatPlayable(cur.data)} ${(cur.position * 100) / cur.duration}%\n"
                         pl.forEachIndexed { i, e ->
-                            +"${i + 2}: ${formatData(e.data)}"
+                            +"${i + 2}: ${formatPlayable(e.data)}"
                             if (e.position != 0L) {
                                 +" ${(e.position * 100) / e.duration}%"
                             }
@@ -226,7 +165,7 @@ object MusicCommands : ICommandList {
             val skipPlain by parser.leftoverDelegate()
             fun CommandContext.skip(id: Int) {
                 val skipped = MusicHandler.skip(id, guild)
-                replyData(skipped.data) {
+                replyPlayable(skipped.data) {
                     color = GREEN
                     title = "Skipped"
                 }
@@ -265,7 +204,7 @@ object MusicCommands : ICommandList {
                             }
                         } else {
                             val skipped = MusicHandler.skip(n - 1, guild)
-                            replyData(skipped.data) {
+                            replyPlayable(skipped.data) {
                                 color = GREEN
                                 title = "Skipped"
                             }
@@ -313,10 +252,10 @@ object MusicCommands : ICommandList {
                             pattern {
                                 color = GREEN
                                 title = "Skipped"
-                                thumbnail = skipped.first().data.imgUrl ?: cat.img
+                                thumbnail = skipped.first().data.getImage(cat.img)
                             }
                             skipped.forEach {
-                                +formatData(it.data)
+                                +formatPlayable(it.data)
                                 +"\n"
                             }
                         }
@@ -468,6 +407,73 @@ object MusicCommands : ICommandList {
         }
     }
 
+    private fun CommandContext.playVariants(data: List<MusicData>, musicArgs: MusicHandler.MusicArgs): MusicHandlerRet? {
+        reply(embed {
+            color = YELLOW
+            title = "Select variant"
+            data.forEachIndexed { i, e ->
+                +"${i + 1}$numbermoji - ${e.type.name.capitalize()} - ${formatData(e)}\n\n"
+            }
+        }, success = { msg ->
+            Reactions.register(msg.id) {
+                if (it.user == UADAB.bot.selfUser)
+                    return@register false
+                val re = it.reactionEmote.name
+                if (re.length <= 1 || re[1] != numbermoji)
+                    return@register true
+                val num = re[0]
+                if (num in '1'..('0' + data.size)) {
+                    val r = MusicHandler.load(data[num.toString().toInt() - 1], guild, musicArgs)
+                    handleLoad(r)
+                    //Use getMessageById to update message, because msg is cached version
+                    msg.channel.getMessageById(msg.id).complete().reactions.filter(
+                        MessageReaction::isSelf
+                    ).forEach { rec ->
+                        rec.removeReaction().queue()
+                    }
+
+                }
+                true
+            }
+            for (j in 1..data.size) {
+                msg.addReaction("$j$numbermoji").queue()
+            }
+        })
+        return null
+    }
+
+    private fun CommandContext.playNothing(name: String): MusicHandlerRet? {
+        replyCat {
+            color = RED
+            title = "Found a whole lot of nothing"
+            +name
+        }
+        return null
+    }
+
+    private fun CommandContext.playSingle(data: List<MusicData>, musicArgs: MusicHandler.MusicArgs): MusicHandlerRet? {
+        return MusicHandler.load(data.first(), guild, musicArgs)
+    }
+
+    private fun CommandContext.playMany(name: String): MusicHandlerRet? {
+        replyCat {
+            color = RED
+            title = "To many results, try narrowing it down"
+            +name
+        }
+        return null
+    }
+
+    private fun CommandContext.playQuery(name: String, musicArgs: MusicHandler.MusicArgs): MusicHandlerRet? =
+        MusicHandler.context.search(name)?.let { data ->
+            when (data.size) {
+                0 -> playNothing(name)
+                1 -> playSingle(data, musicArgs)
+                in 2..10 -> playVariants(data, musicArgs)
+                else -> playMany(name)
+            }
+        }
+
     private fun parseVolumeValue(valueString: String): Int? {
         val value = valueString.toIntOrNull()
         if (value == null || value < 0 || value > 100) {
@@ -475,6 +481,12 @@ object MusicCommands : ICommandList {
         }
         return value
     }
+
+    private fun getDeltaFromOp(delta: Int, op: String): Int =
+        if (op == "+") delta else -delta
+
+    private fun Int.constraint(lower: Int, upper: Int): Int =
+        min(max(this, lower), upper)
 
     private fun CommandContext.volumeByDelta(operator: String, deltaString: String) {
         if (operator !in setOf("+", "-")) {
@@ -491,22 +503,11 @@ object MusicCommands : ICommandList {
             +"Delta must be a positive number in range [0; 100]"
         }
         val player = MusicHandler.getGuildAudioPlayer(guild)
-        setVolume(
-            min(
-                max(
-                    player.player.volume +
-                            if (operator == "+") {
-                                delta
-                            } else {
-                                -delta
-                            }, 0
-                ), 100
-            )
-        )
+        setVolume(player.player.volume + getDeltaFromOp(delta, operator))
     }
 
     private fun CommandContext.setVolume(value: Int) {
-        MusicHandler.getGuildAudioPlayer(guild).player.volume = value
+        MusicHandler.getGuildAudioPlayer(guild).player.volume = value.constraint(0, 100)
         replyCat {
             title = "Volume changed"
             color = GREEN
@@ -522,29 +523,29 @@ object MusicCommands : ICommandList {
         }
     }
 
-    fun currentImg(guild: Guild): String = MusicHandler.currentTrack(guild)?.data?.imgUrl ?: cat.img!!
+    private fun currentImg(guild: Guild): String = MusicHandler.currentTrack(guild)?.data?.getImage(cat.img) ?: ""
 
-    fun CommandContext.replyData(data: MusicData, embed: Init<PaginatedEmbedCreator>) = reply {
-        thumbnail = data.imgUrl ?: cat.img
-        +formatData(data)
+    private fun CommandContext.replyPlayable(playable: Playable, embed: Init<PaginatedEmbedCreator>) = reply {
+        +formatPlayable(playable)
+        thumbnail = playable.getImage(cat.img)
         embed()
     }
 
     fun CommandContext.handleLoad(res: MusicHandlerRet) {
         when (res) {
-            is MHSuccess -> replyData(res.data) {
+            is MHSuccess -> replyPlayable(res.playable) {
                 color = GREEN
                 title = "Success"
             }
-            is MHAlreadyInQueue -> replyData(res.data) {
+            is MHAlreadyInQueue -> replyPlayable(res.playable) {
                 color = YELLOW
                 title = "This song is already in queue"
             }
-            is MHNotFound -> replyData(res.data) {
+            is MHNotFound -> replyPlayable(res.playable) {
                 color = RED
                 title = "No valid songs found... this really shouldn't happen..."
             }
-            is MHError -> replyData(res.data) {
+            is MHError -> replyPlayable(res.playable) {
                 color = RED
                 title = "Error occurred"
                 +"\n"
@@ -559,19 +560,19 @@ object MusicCommands : ICommandList {
             is MHFullyLoaded -> replyCat {
                 color = GREEN
                 title = "Success"
-                thumbnail = res.results.first().data?.imgUrl
+                thumbnail = (res.results.first { it is MHSuccess } as MHSuccess).playable.getImage()
                 +"Loaded ${res.results.size} songs"
             }
             is MHAllLoaded -> replyCat {
                 color = YELLOW
                 title = "Loaded all possible songs"
-                thumbnail = res.results.first().data?.imgUrl
+                thumbnail = (res.results.first { it is MHSuccess } as MHSuccess).playable.getImage()
                 +"Loaded ${res.results.size - 1} songs"
             }
             is MHPartiallyLoaded -> replyCat {
                 color = YELLOW
                 title = "Something went wrong somewhere"
-                thumbnail = res.results.first { it is MHSuccess }.data?.imgUrl
+                thumbnail = (res.results.first { it is MHSuccess } as MHSuccess).playable.getImage()
                 +"Loaded ${res.loaded} songs\n"
                 +"Unable to load ${res.results.size - res.loaded} songs"
             }
@@ -587,7 +588,13 @@ object MusicCommands : ICommandList {
         }
     }
 
-    fun formatData(data: MusicData): String {
+    private fun formatPlayable(playable: Playable): String =
+        when (playable) {
+            is Playable.Music -> formatData(playable.data)
+            is Playable.Url -> "[${playable.title}](${playable.url})"
+        }
+
+    private fun formatData(data: MusicData): String {
         var ret = data.title
         var cur = data
         while (cur.parent!!.type != CONTEXT) {

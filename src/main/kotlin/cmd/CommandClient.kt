@@ -78,6 +78,7 @@ class CommandClient(val prefix: String) {
         } catch (e: MusicContextInitializationException) {
             return ExecutionResult.MUSIC_CONTEXT_ERROR to e.msg
         } catch (e: Exception) {
+            e.printStackTrace()
             return ExecutionResult.ERROR to "${e.javaClass.simpleName}: ${e.localizedMessage}"
         }
         return ExecutionResult.SUCCESS to ""

@@ -4,24 +4,17 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import uadamusic.MusicData
 
 
-sealed class MusicHandlerRet {
+sealed class MusicHandlerRet
 
-    open val path: String? = null
-    open val data: MusicData? = null
-    open val track: AudioTrack? = null
-    open val error: Throwable? = null
+class MHSuccess(val playable: Playable) : MusicHandlerRet()
 
-}
+class MHAlreadyInQueue(val playable: Playable) : MusicHandlerRet()
 
-class MHSuccess(override val path: String, override val data: MusicData, override val track: AudioTrack) : MusicHandlerRet()
+class MHNotFound(val playable: Playable) : MusicHandlerRet()
 
-class MHAlreadyInQueue(override val path: String, override val data: MusicData, override val track: AudioTrack) : MusicHandlerRet()
+class MHError(val error: Throwable, val playable: Playable) : MusicHandlerRet()
 
-class MHNotFound(override val path: String, override val data: MusicData) : MusicHandlerRet()
-
-class MHError(override val error: Throwable, override val data: MusicData) : MusicHandlerRet()
-
-class MHUnknown(override val data: MusicData) : MusicHandlerRet()
+class MHUnknown(val playable: Playable?) : MusicHandlerRet()
 
 class MHNoMoreTracks : MusicHandlerRet()
 

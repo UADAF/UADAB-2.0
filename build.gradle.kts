@@ -32,7 +32,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed:0.17.7")
     implementation("mysql:mysql-connector-java:8.0.21")
     implementation("com.github.kizitonwose.time:time:1.0.4")
-    implementation("com.uadaf:uadamusic:2.5")
+    implementation("com.uadaf:uadamusic:2.5.1")
     implementation("com.uadaf:quoter-api:1.3.1")
     implementation("com.sedmelluq:lavaplayer:1.3.47")
     implementation("pl.droidsonroids:jspoon:1.3.2")

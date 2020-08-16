@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo
 import commands.MusicCommands
 import kotlinx.coroutines.runBlocking
 import net.dv8tion.jda.core.entities.Guild
@@ -18,6 +19,32 @@ import utils.exception.MusicContextInitializationException
 import java.lang.IllegalArgumentException
 import java.nio.file.Paths
 import java.util.*
+
+sealed class Playable {
+    class Music(val data: MusicData): Playable()
+    class Url(val url: String, val title: String = url): Playable()
+
+
+    fun getIdentifier(): String =
+        when (this) {
+            is Url -> url
+            is Music -> data.path.let {
+                if ("://" in it) it else it.replace("//", "/")
+            }
+        }
+
+    fun getImage(default: String? = null): String? =
+        when (this) {
+            is Url -> default
+            is Music -> data.img ?: default
+        }
+
+    fun fromInfo(info: AudioTrackInfo): Playable =
+        when (this) {
+            is Url -> Url(info.uri, info.title ?: info.uri)
+            is Music -> this
+        }
+}
 
 object MusicHandler {
 
@@ -32,9 +59,13 @@ object MusicHandler {
     val isContextAvailable: Boolean
         get() = contextState.isAvailable
 
-    val AudioTrack.data: MusicData
+    val AudioTrack.data: Playable
         get() {
-            return context.search(removeExtension(normalizePath(identifier)))!!.first()
+            if (info.uri.startsWith("http"))
+                return Playable.Url(info.uri, info.title ?: info.uri ?: "")
+            return context.search(removeExtension(normalizePath(identifier)))?.first()?.let {
+                Playable.Music(it)
+            } ?: throw IllegalStateException("Current track cannot be found in current context")
         }
 
     fun normalizePath(p: String) = Paths.get(context.name).relativize(Paths.get(p)).toString()
@@ -43,12 +74,7 @@ object MusicHandler {
 
     val MusicData.imgUrl: String?
         get() {
-            val i = img
-            return if (i == null || i.isEmpty()) {
-                null
-            } else {
-                UADAB.cfg.musicMetaUrl + i
-            }
+            return img?.let { if (it.isEmpty()) null else it }?.let { UADAB.cfg.musicMetaUrl + it }
         }
 
     val MusicData.isSong: Boolean
@@ -145,40 +171,51 @@ object MusicHandler {
         var next: Boolean = false
     )
 
-    fun loadDirect(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
-        if (data.type != SONG) {
-            throw IllegalArgumentException("loadDirect should only be called with song data arg")
-        }
-        val name = data.path
-        var ret: MusicHandlerRet? = null
-        val player = getGuildAudioPlayer(guild)
-        val cleared = if ("://" in name) name else name.replace("//", "/")
-        playerManager.loadItem(cleared, object : AudioLoadResultHandler {
-            override fun loadFailed(exception: FriendlyException) {
-                ret = MHError(exception, data)
-            }
+    private fun isInQueue(args: MusicArgs, player: GuildMusicManager, track: AudioTrack): Boolean =
+        args.noRepeat && (player.scheduler.hasTack(track) || player.playingTrack?.identifier == track.identifier)
 
+    private fun GuildMusicManager.enqueueTrack(args: MusicArgs, track: AudioTrack) =
+        when {
+            args.first -> scheduler.playNow(track)
+            args.next -> scheduler.playNext(track)
+            else -> scheduler.queue(track)
+        }
+
+    private fun loadItem(
+        playable: Playable,
+        args: MusicArgs,
+        player: GuildMusicManager
+    ): MusicHandlerRet {
+        var ret: MusicHandlerRet = MHUnknown(playable)
+        playerManager.loadItem(playable.getIdentifier(), object : AudioLoadResultHandler {
+            override fun loadFailed(exception: FriendlyException) {
+                ret = MHError(exception, playable)
+            }
             override fun trackLoaded(track: AudioTrack) {
-                if (args.noRepeat && (player.scheduler.hasTack(track) || player.playingTrack?.identifier == track.identifier)) {
-                    ret = MHAlreadyInQueue(cleared, data, track)
+                ret = if (isInQueue(args, player, track)) {
+                    MHAlreadyInQueue(playable.fromInfo(track.info))
                 } else {
-                    when {
-                        args.first -> player.scheduler.playNow(track)
-                        args.next -> player.scheduler.playNext(track)
-                        else -> player.scheduler.queue(track)
-                    }
-                    ret = MHSuccess(cleared, data, track)
+                    player.enqueueTrack(args, track)
+                    MHSuccess(playable.fromInfo(track.info))
                 }
             }
-
             override fun noMatches() {
-                ret = MHNotFound(cleared, data)
+                ret = MHNotFound(playable)
             }
-
             override fun playlistLoaded(playlist: AudioPlaylist) {}
-
         }).get()
-        return ret ?: MHUnknown(data)
+        return ret
+    }
+
+    private fun loadDirect(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
+        if (data.type == SONG) {
+            return loadItem(Playable.Music(data), args, getGuildAudioPlayer(guild))
+        }
+        throw IllegalArgumentException("loadDirect should only be called with song data arg")
+    }
+
+    fun loadUrl(url: String, guild: Guild, args: MusicArgs): MusicHandlerRet {
+        return loadItem(Playable.Url(url), args, getGuildAudioPlayer(guild))
     }
 
     fun getVariants(name: String) = context.search(name)
@@ -233,7 +270,7 @@ object MusicHandler {
     fun load(data: MusicData, guild: Guild, args: MusicArgs): MusicHandlerRet {
         val validSongs = data.getSongs()
         if (validSongs.isEmpty()) {
-            return MHNotFound(data.path, data)
+            return MHNotFound(Playable.Music(data))
         }
         val rets = mutableListOf<MusicHandlerRet>()
         if (validSongs.size == 1) {
