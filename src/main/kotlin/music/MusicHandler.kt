@@ -36,7 +36,7 @@ sealed class Playable {
     fun getImage(default: String? = null): String? =
         when (this) {
             is Url -> default
-            is Music -> data.img ?: default
+            is Music -> data.img?.let { "${UADAB.cfg.musicMetaUrl}${it}" } ?: default
         }
 
     fun fromInfo(info: AudioTrackInfo): Playable =
